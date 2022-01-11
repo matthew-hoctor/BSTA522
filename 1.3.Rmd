@@ -1,0 +1,59 @@
+---
+title: "Homework 1 - Part 3 - BSTA 522"
+author: "Matthew Hoctor"
+date: "1/10/2022"
+output:
+  pdf_document:
+    toc: yes
+  html_document:
+    number_sections: no
+    theme: lumen
+    toc: yes
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# library(dplyr)
+# library(readxl)
+# library(tidyverse)
+# library(ggplot2)
+# library(CarletonStats)
+# library(pwr)
+# library(BSDA)
+# library(exact2x2)
+# library(car)
+# library(dvmisc)
+# library(emmeans)
+# library(gridExtra)
+# library(DescTools)
+# library(DiagrammeR)
+# library(nlme)
+# library(doBy)
+# library(geepack)
+# library(rje)
+```
+
+# Part 3
+
+## Lazer et al. Summary
+
+ * Google Flu Trends (GFT) predicted twice the number of provider visits for influenza as was measured by CDC surveillance.  GFT's prediction is an interesting and useful example of the possible pitfalls of big data.
+ * Big data Hubris:  The idea that big data substituted traditional methods (i.e. big data hubris) lead to overfitting; "the initial version of GFT was part flu detector, part winter detector".  The authors assert that the solution is a combination of GFT and CDC data, and that this combination outpeforms either source.
+ * Algorithm dynamics, i.e. changes to google's algorithm to improve google likely affected GFT's predictions.  Furthermore, media attention to certain flu seasons may have increased flu-related searches, leading to overestimation by GFT.
+ * Lessons learned: Transparency and replicabailty are important scientific values, but are difficult or impossible for big data.  Understanding the unknown (e.g. predicting flu at a local level) is a productive use of big data.  Therefore conventional methods can still offer insights which big data cannot.
+
+## Fan et al. Summary
+
+ * Big data has come about due to reduced cost of storage/production of data; in the most abstract terms, big data allows for exploration of 'hidden structures' (i.e. outliers), and finding commonalities among heterogeneous populations.  Challenges of using big data potentially include high computation intensity, heterogeneity of data (due to differences in collection from multiple sources), and noise accumulation from high dimensional data.
+ * The idea of incidental endogeneity is introduced.  This term describes a phenomenon in which causally unrelated covariates are correlated due only to correlation with residual noise.  While this is unlikely to happen with conventional datasets, the large number of covariates in high-dimensional data make this relatively more likely when dealing with big data.
+ * Big data is described as  heterogeneous, with tendencies towards noise accumulation, spurious correlation, and incidental endogeneity.  Heterogeneity can be an advantage as it allows examination of small populations which would be regarded as outliers in conventional analysis.  Noise accumulation can occur when a large number of features are used for classification.  This motivates the importance of variable selection in big data, however the likelihood of spurious correlation is increases as the number of variables increases, making variable selection difficult. 
+ * Several statistical methods have been developed to address some of the issues of big data.  Penalized quasi-likelihood and sparsest solution in high confidence set methods can be used to address noise-accumulation; independence screening can be used to reduce computational load; however, incidental endogeneity remains a challenge.
+ * Using big data is facilitated by several technologies; these include the MapReduce parallel programming model, the HDFS file system, and many others cloud computing resources.
+
+# References
+
+1. Lazer D, Kennedy R, King G, Vespignani A. The Parable of Google Flu: Traps in Big Data Analysis. Science. 2014;343(6176):1203-1205. doi:10.1126/science.1248506
+2. Fan J, Han F, Liu H. Challenges of Big Data analysis. National Science Review. 2014;1(2):293-314. doi:10.1093/nsr/nwt032

@@ -1,0 +1,204 @@
+---
+title: "Homework 1 - Part 4 - BSTA 522"
+author: "Matthew Hoctor"
+date: "1/10/2022"
+output:
+  html_document:
+    number_sections: no
+    theme: lumen
+    toc: yes
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# library(dplyr)
+# library(readxl)
+# library(tidyverse)
+# library(ggplot2)
+# library(CarletonStats)
+# library(pwr)
+# library(BSDA)
+# library(exact2x2)
+# library(car)
+# library(dvmisc)
+# library(emmeans)
+# library(gridExtra)
+# library(DescTools)
+# library(DiagrammeR)
+# library(nlme)
+# library(doBy)
+# library(geepack)
+# library(rje)
+library(ISLR2)
+library(psych)
+```
+
+# Part 4
+
+## 2.1
+
+### a
+
+We would expect flexible statistical learning methods to perform better given large n and small p.  This problem is similar to conventional statistical analysis, and the small p should limit the degree of possible overfitting.
+
+### b
+
+We would expect inflexible statistical learning methods to perform better given small n and large p. With large p overfitting could be an issue with flexible methods.
+
+### c
+
+We would expect flexible statistical learning methods to perform better given non-linear relations between predictors and response.  More parameters are required to describe nonlinear relations, and therefore require a more flexible method, as illustrated in figures 2.10 & 2.11.
+
+### d
+
+We would expect flexible and inflexible statistical learning methods to perform poorly given very high variance of error terms.  If we look at equation 2.7 we observe that adjusting the number of parameters can affect the variance and bias of the estimate (the variance-bias trade off), but the variance of the error term (the irreducible error) is irreducible.  This is illustrated nicely in figure 2.12.
+
+## 2.2
+
+### a
+
+ * This is a regression problem and not a classification problem.  There is an outcome of interest which is continuous (CEO salary), but we are not trying to categorize CEO salary.
+ * Inference about factors affecting CEO salary are being made in this scenario.
+ * n = 500
+ * p = 3 (there are three predictors; profit, employees, and industry)
+
+### b
+
+ * This scenario is a classification scenario because it involves a qualitative categorical assessment (success/failure).
+ * This scenario is more concerned with prediction because the affected parties wish to know what will happen, but are less interested in why it happens.
+ * n = 20
+ * p = 14
+
+### c
+
+ * This scenario is a regression problem because the outcome of interest is continuous and not categorical.
+ * This scenario is concerned with prediction because the affected parties would like to predict future events, but are less interested in the factors influencing those events.
+ * n = 52
+ * p = 3
+
+## 2.10
+
+### a
+
+```{r}
+dim(Boston)
+```
+
+How many columns? 506
+
+How many rows are in this data set? 13
+```{r}
+names(Boston)
+```
+
+What do the rows and columns represent?
+
+Each row represents one of the 506 suburbs of the city of Boston, and each column contains data relavant to that suburb; e.g. the 'crim' colum contains per-capita crime rate.
+
+### b
+
+```{r}
+
+pairs(
+  ~ tax + medv + lstat + age + rm,
+  data = Boston
+  )
+
+pairs(
+  ~ zn + indus + chas + nox + dis,
+  data = Boston
+  )
+
+pairs(
+  ~ crim + dis + ptratio,
+  data = Boston
+  )
+```
+
+In the first scatter plot matrix we can see intuitive relations between socioeconomic variables corresponding to property tax value, median home value, proportion of lower status of the population, proportion of older homes, and number of rooms in the home.  E.g. we can see that number of rooms correlates strongly with median home value, but that proportion of lower status of population is inversely related to median home value.
+
+
+### c
+
+```{r}
+pairs.panels(
+  Boston,
+  stars = TRUE
+  )
+```
+
+From this scatter plot matrix, we can see the Pearson correlation for per-capita crime rate along the top row, and plots of correlations along the first column.  From this information we can see that most variables have a statistically significant correlation with crime rate (with the exception of the Charles River variable).
+
+### d
+
+```{r}
+summary(Boston$crim)
+```
+
+From this summary we can see that per capita crime rate varies from 0.01 to 88.98; with relatively lower mean and median of 3.61 and 0.26 respectively.  It would be interesting to know how many suburbs have a crime rate over 80, or 70, or 60, etc:
+
+```{r}
+for (x in 8:1){
+  print(10*x)
+  print(dim(Boston[Boston$crim > 10*x,]))
+}
+```
+
+Only one with crime rate greater than 80, but 54 with crime rate greater than 10.  Interesting.
+
+### e
+
+```{r}
+dim(Boston[Boston$chas==1,])
+```
+
+35 bound the Charles River.
+
+### f
+
+```{r}
+median(Boston$ptratio)
+```
+
+Median pupil-teacher ratio is 19.05.
+
+### g
+
+```{r}
+min(Boston$medv)
+```
+
+From this we can see that the lowest median value of owner-occupied homes in $5,000.00.
+
+```{r}
+Boston[Boston$medv==5,]
+```
+
+We can compare these results to the overall range:
+
+```{r}
+summary(Boston)
+```
+
+From this summary we can see that crime rate, non-retail business acreage, nitrogen oxides, proportion of older homes, accesibility to highways, property tax rate, pupil teacher ratio, and proportion of lower status of population are higher; zoned lots for over 25,000 square feet, Charles River proximity, average rooms per dwelling are similar; distance to employment is lower.
+
+### h
+
+```{r}
+dim(Boston[Boston$rm>8,])
+dim(Boston[Boston$rm>7,])
+```
+
+In this data set 64 census tracts average more than 7 rooms per dwelling and 13 average more than 8 rooms per dwelling.  
+
+```{r}
+summary(Boston[Boston$rm>8,])
+summary(Boston)
+```
+
+We can see that this subset of census tracts tends to have different characteristics than the dataset as a whole; these census tracts are more likely to be on the river, have lower crime, have older residents, lower tax rates, lower pupil-teacher ratios, etc.
