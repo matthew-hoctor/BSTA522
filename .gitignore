@@ -1,3 +1,6 @@
+# PDF files for submission
+*.pdf
+
 # History files
 .Rhistory
 .Rapp.history

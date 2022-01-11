@@ -1,2 +1,5 @@
 # BSTA522
-A place to upload BSTA 522 homework
+
+ * HW1
+   + [part 3](https://matthew-hoctor.github.io/BSTA522/1.3)
+   + [part 4](https://matthew-hoctor.github.io/BSTA522/1.4)
