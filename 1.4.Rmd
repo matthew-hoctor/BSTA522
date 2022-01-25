@@ -202,3 +202,10 @@ summary(Boston)
 ```
 
 We can see that this subset of census tracts tends to have different characteristics than the dataset as a whole; these census tracts are more likely to be on the river, have lower crime, have older residents, lower tax rates, lower pupil-teacher ratios, etc.
+
+## Session Info
+
+```{r}
+sessionInfo()
+```
+

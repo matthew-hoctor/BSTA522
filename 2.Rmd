@@ -1,0 +1,313 @@
+---
+title: "Homework 2 - BSTA 522"
+author: "Matthew Hoctor"
+date: "1/10/2022"
+output:
+  html_document:
+    number_sections: no
+    theme: lumen
+    toc: yes
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# library(dplyr)
+# library(readxl)
+# library(tidyverse)
+# library(ggplot2)
+# library(CarletonStats)
+# library(pwr)
+# library(BSDA)
+# library(exact2x2)
+# library(car)
+# library(dvmisc)
+# library(emmeans)
+# library(gridExtra)
+# library(DescTools)
+# library(DiagrammeR)
+# library(nlme)
+# library(doBy)
+# library(geepack)
+# library(rje)
+library(ISLR2)
+library(psych)
+library(MASS)
+```
+
+# Part 3
+
+## Jordan & Mitchell Summary
+
+ * For the aughors, the two fundamental questions of machine learning are how to make computer systems which improve through experience in an automated way, and what laws govern learning systems.  To illustrate the problem of machine learning, the construction and improvement of algorithms for identification of fraudulent credit card transactions is given.
+ * Recent progress in machine learning has been driven by rapid increases in the amount of data available in many fields; conventional methods are not adequate to draw satisfactory inferences from such large amounts of information.
+ * Supervised learning systems (in which an output is generated from a set of inputs) are most commonly used (at the time of writing, 2015).  Binary and multi-class classification are examples of supervised learning.  This is contrasted with unsupervised learning and reinforcement learning, in which unlabeled data are partitioned and in which a partially correct indication of weather the classification is correct respectively.
+ * Trends emerge from the computational-informational 'environment', i.e. the sources of data and computational power which are often spread over multiple sites.  Resources including privacy and bandwidth drive current issues in machine learning.
+ * Current challenges involve learning multiple different functions or categorizations from a set of data, as a human might.  Potential ethical issues privacy issues, and inequitable benefits of machine learning to society, 
+
+## Ginsburg et al. Summary
+
+ * Prediction of influenza trends is necessary from a public health perspective because of the high burden of influenza, and because of the potential for pandemic spread of new strains of influenza.  Google researchers describe prediction of visits for invluenza-like illness (ILI) using search terms related to influenza symptoms. 
+ * Classical survellance involves clinical lab tests for influenza and physician visits for ILI.
+ * Google's approach was to model the probability that a physicians visit was for ILI in a particular region of the US, as a function of the probabilities of ILI related queries from web searches from between 2003-2008.  A best fit was obtained from 45 different queries.
+ * The authors note that although this method reports trends ~2 weeks ahead of traditional surveillance methods, it is not a replacement for those methods. 
+
+# Part 4
+
+## 3.4
+
+### a
+
+The scenario described in this question is close to that depicted in figure 2.10.  In this scenario we can see that RSS decreases monotonically as flexibility increases, even when the true function is essentially linear.  This is because an increasingly flexible function can account for more of the error in the training set observations.  So, we would expect the training RSS for the cubic model to be lower than that of the linear model, but it may not be much lower (particularly if each observation has only a small amount of error).
+
+### b
+
+Testing RSS would may be greater for the cubic model than the linear model, or it may be similar.  Given that we know the true relation is a linear one, the cubic model is over-fitted, and therefore may give poorer RSS for most testing data sets.
+
+### c
+
+Training RSS decreases monotonically with increased flexibility; therefore we would expect decreased training RSS for the cubic model compared to the linear model, even in a scenario where we do not know the true underlying relation between the variables.
+
+### d
+
+Testing RSS tends to have a U-shaped relation to model flexibility; so unfortunately we can't know how the testing RSS for the cubic model compares to the testing RSS for the linear model without having some idea of the underlying relation.  Without this knowlege we can't predict if the cubic model will be overfitted, underfitted, or perhaps appropriate. 
+
+## 3.8
+
+### a
+
+This 
+
+```{r}
+auto <- Auto
+```
+
+```{r}
+auto.lm1 <- lm(mpg ~ horsepower, data = auto)
+summary(auto.lm1)
+```
+
+There is a relation between horsepower (the predictor) and mpg (the response); this is evidenced by the very small p-value, which suggests that the observed relation would be exceedingly unlikely if there was no relation (i.e. if $\beta_1 = 0$).  The strength of the relationship is summarized by $\hat{\beta}_1$; i.e. each unit of increase in horsepower is associated with an estimated decrease of 0.158 mpg.  Increasing horsepower is associated with decreased mpg; therefore the relation is negative. 
+
+```{r}
+predict (auto.lm1, data.frame(horsepower = (c(98))), interval = "confidence")
+predict (auto.lm1, data.frame(horsepower = (c(98))), interval = "prediction")
+```
+
+The predcted MPG associated with 98 HP is 24.47; the associated 95% CI is (12.97, 24.96), and the associated 95% prediction interval is (14.81, 43.12).
+
+### b
+
+```{r}
+plot(auto$horsepower, auto$mpg,
+     main = "Horespower vs Miles Per Gallon for Cars on The American Market 1970-1983",
+     xlab = "Horsepower (HP)",
+     ylab = "Miles per Gallon (MPG)")
+abline(auto.lm1)
+```
+
+### c
+
+```{r}
+plot(auto.lm1)
+```
+
+These plots suggest several things:
+ * The plot of residuals vs fitted values confirms what was suggested in the plot of the response and the predictor; the relation is non-linear, and may benefit from a more flexible model.
+ * The Q-Q plot looks okay; the assumption of normality is not implausible given this plot.
+ * The plot of squared residuals shows a trend towards greater squared residual at high and low MPG values, suggesting that the model may benefit from higher-order terms.
+ * No data is leveraged beyond 0.5; therefore none of the outliers are overly concerning.
+
+## 3.15
+
+```{r}
+boston <- Boston
+```
+
+### a
+
+```{r}
+boston.lm.zn <- lm(crim ~ zn, data = boston)
+summary(boston.lm.zn)
+```
+
+```{r}
+boston.lm.indus <- lm(crim ~ indus, data = boston)
+summary(boston.lm.indus)
+```
+
+```{r}
+boston.lm.chas <- lm(crim ~ chas, data = boston)
+summary(boston.lm.chas)
+```
+
+```{r}
+boston.lm.nox <- lm(crim ~ nox, data = boston)
+summary(boston.lm.nox)
+```
+
+```{r}
+boston.lm.rm <- lm(crim ~ rm, data = boston)
+summary(boston.lm.rm)
+```
+
+```{r}
+boston.lm.age <- lm(crim ~ age, data = boston)
+summary(boston.lm.age)
+```
+
+```{r}
+boston.lm.dis <- lm(crim ~ dis, data = boston)
+summary(boston.lm.dis)
+```
+
+```{r}
+boston.lm.rad <- lm(crim ~ rad, data = boston)
+summary(boston.lm.rad)
+```
+
+```{r}
+boston.lm.tax <- lm(crim ~ tax, data = boston)
+summary(boston.lm.tax)
+```
+
+```{r}
+boston.lm.ptratio <- lm(crim ~ ptratio, data = boston)
+summary(boston.lm.ptratio)
+```
+
+```{r}
+boston.lm.black <- lm(crim ~ black, data = boston)
+summary(boston.lm.black)
+```
+
+```{r}
+boston.lm.lstat <- lm(crim ~ lstat, data = boston)
+summary(boston.lm.lstat)
+```
+
+```{r}
+boston.lm.medv <- lm(crim ~ medv, data = boston)
+summary(boston.lm.medv)
+```
+
+#### Conclusion
+
+Simple linear regressions suggest that each other variable in the data set is correlated with the per-capita crime rate.  The following scatter plot matrix (from 2.20.c) illustrates these correlations:
+
+```{r}
+pairs.panels(
+  boston,
+  stars = TRUE
+  )
+```
+
+### b
+
+```{r}
+boston.lm1 <- lm(crim ~ zn + indus + chas + nox + rm + age + dis + rad + tax + ptratio + black + lstat + medv, data = boston)
+summary(boston.lm1)
+```
+
+Using multiple linear regression, we can reject $H_0: \beta_j = 0$ at $\alpha = 0.05$ for proportion of residential land zoned for large lots, mean of distances to five Boston employment centres, accessibility to radial highways, the 'black' variable, and value of owner-occupied homes.
+
+### c
+
+Most of the variables found to be significant in part a are not significant at $\alpha = 0.05$ in the multivariable regression.  
+
+```{r}
+coeff <- data.frame(x = c(-0.07393, 0.50978, -1.8928, 31.249, -2.684, 0.10779, -1.5509, 0.61791, 0.029742, 1.1520, -0.036280, 0.54880, -0.36316),
+                    y = boston.lm1$coefficients[2:14])
+plot(coeff,
+     main = "Coefficiets from univariate regression vs coefficients from multivariate regression",
+     xlab = "Univariate regression coefficients",
+     ylab = "Multivariate regression coefficeints")
+```
+
+### d
+
+To investigate possible nonlinearity (as illustrated in the scatter plot matrix) we can fit a cubic model for each predictor:
+
+```{r}
+boston.lm.zn3 <- lm(crim ~ poly(zn,3), data = boston)
+summary(boston.lm.zn3)
+```
+
+```{r}
+boston.lm.indus3 <- lm(crim ~ poly(indus,3), data = boston)
+summary(boston.lm.indus3)
+```
+
+```{r}
+# boston.lm.chas3 <- lm(crim ~ poly(chas,3), data = boston)
+# summary(boston.lm.chas3)
+
+# not run for binomial variables
+```
+
+```{r}
+boston.lm.nox3 <- lm(crim ~ poly(nox,3), data = boston)
+summary(boston.lm.nox3)
+```
+
+```{r}
+boston.lm.rm3 <- lm(crim ~ poly(rm,3), data = boston)
+summary(boston.lm.rm3)
+```
+
+```{r}
+boston.lm.age3 <- lm(crim ~ poly(age,3), data = boston)
+summary(boston.lm.age3)
+```
+
+```{r}
+boston.lm.dis3 <- lm(crim ~ poly(dis,3), data = boston)
+summary(boston.lm.dis3)
+```
+
+```{r}
+boston.lm.rad3 <- lm(crim ~ poly(rad,3), data = boston)
+summary(boston.lm.rad3)
+```
+
+```{r}
+boston.lm.tax3 <- lm(crim ~ poly(tax,3), data = boston)
+summary(boston.lm.tax3)
+```
+
+```{r}
+boston.lm.ptratio3 <- lm(crim ~ poly(ptratio,3), data = boston)
+summary(boston.lm.ptratio3)
+```
+
+```{r}
+boston.lm.black3 <- lm(crim ~ poly(black,3), data = boston)
+summary(boston.lm.black3)
+```
+
+```{r}
+boston.lm.lstat3 <- lm(crim ~ poly(lstat,3), data = boston)
+summary(boston.lm.lstat3)
+```
+
+```{r}
+boston.lm.medv3 <- lm(crim ~ poly(medv,3), data = boston)
+summary(boston.lm.medv3)
+```
+
+There is evidence of some amount of nonlinearity for all of the variables with the exception of the black variable and the Charles river variable.
+
+# Session Info
+
+```{r}
+sessionInfo()
+```
+
+# References
+
+1. Jordan MI, Mitchell TM. Machine learning: Trends, perspectives, and prospects. Science. 2015;349(6245):255-260. doi:10.1126/science.aaa8415
+2. Ginsberg J, Mohebbi MH, Patel RS, Brammer L, Smolinski MS, Brilliant L. Detecting influenza epidemics using search engine query data. Nature. 2009;457(7232):1012-1014. doi:10.1038/nature07634
