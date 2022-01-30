@@ -340,12 +340,12 @@ X_1 &amp;= \frac{\mathbb{logit}[0.50] - \hat{\beta_0} - \hat{\beta_2} X_2}{\hat{
 ##            
 ## </code></pre>
 <p>We can create a long-form dataset for easier plotting:</p>
-<pre class="r"><code>Weekly_long &lt;- pivot_longer(weekly,
+<pre class="r"><code>weekly_long &lt;- pivot_longer(weekly,
                             cols = c(&quot;Lag1&quot;, &quot;Lag2&quot;, &quot;Lag3&quot;, &quot;Lag4&quot;, &quot;Lag5&quot;),
                             names_to = &quot;Lag&quot;,
                             values_to = &quot;Return&quot;)</code></pre>
 <p>We can now plot the boxplots:</p>
-<pre class="r"><code>ggplot(Weekly_long,
+<pre class="r"><code>ggplot(weekly_long,
        aes(x = Lag, y = Return)) +
   geom_boxplot()</code></pre>
 <p><img src="data:image/png;base64,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" width="672" /></p>
@@ -392,7 +392,7 @@ summary(weekly.glm0)</code></pre>
 ## AIC: 1500.4
 ## 
 ## Number of Fisher Scoring iterations: 4</code></pre>
-<p>Based on these results, the lag at two weeks seems significant, i.e.’Lag2’.</p>
+<p>Based on these results, the lag at two weeks (Lag2) seems significant.</p>
 </div>
 <div id="c" class="section level3">
 <h3>c</h3>
@@ -403,7 +403,9 @@ table(yhat0&gt;=0.5,weekly$Direction)</code></pre>
 ##         Down  Up
 ##   FALSE   54  48
 ##   TRUE   430 557</code></pre>
-<pre class="r"><code>confusionMatrix(data=factor(yhat0&gt;=0.5),reference=factor(weekly$Direction==&quot;Up&quot;),positive=&quot;TRUE&quot;)</code></pre>
+<pre class="r"><code>confusionMatrix(data=factor(yhat0&gt;=0.5),
+                reference=factor(weekly$Direction==&quot;Up&quot;),
+                positive=&quot;TRUE&quot;)</code></pre>
 <pre><code>## Confusion Matrix and Statistics
 ## 
 ##           Reference
@@ -435,19 +437,26 @@ table(yhat0&gt;=0.5,weekly$Direction)</code></pre>
 </div>
 <div id="d" class="section level3">
 <h3>d</h3>
-<p>We will create the training and testing datasets:</p>
-<pre class="r"><code>train &lt;- subset(weekly, Year&lt;2009)
-test &lt;- subset(weekly, Year&gt;2008)
-dim(train)</code></pre>
+<p>We will specify the training and testing datasets:</p>
+<pre class="r"><code>train &lt;- (weekly$Year &lt; 2009)
+
+train.subset &lt;- subset(weekly, Year&lt;2009)
+test.subset &lt;- subset(weekly, Year&gt;2008)
+dim(train.subset)</code></pre>
 <pre><code>## [1] 985   9</code></pre>
+<pre class="r"><code>dim(test.subset)</code></pre>
+<pre><code>## [1] 104   9</code></pre>
+<p>Perform the logistic regression:</p>
 <pre class="r"><code>weekly.glm1 &lt;- glm(Direction ~ Lag2 + Volume,
-                  data = train,
-                  family = binomial
+                  data = weekly,
+                  family = binomial,
+                  subset = train
                   )
 summary(weekly.glm1)</code></pre>
 <pre><code>## 
 ## Call:
-## glm(formula = Direction ~ Lag2 + Volume, family = binomial, data = train)
+## glm(formula = Direction ~ Lag2 + Volume, family = binomial, data = weekly, 
+##     subset = train)
 ## 
 ## Deviance Residuals: 
 ##    Min      1Q  Median      3Q     Max  
@@ -470,14 +479,16 @@ summary(weekly.glm1)</code></pre>
 ## Number of Fisher Scoring iterations: 4</code></pre>
 <p>We can use this model to compute a confusion matrix for the years 2009 &amp; 2010:</p>
 <pre class="r"><code>yhat1=predict(weekly.glm1,
-              test,
+              weekly,
               type=&quot;response&quot;)
-table(yhat1&gt;=0.5,test$Direction)</code></pre>
+table(yhat1[!train]&gt;=0.5,test.subset$Direction)</code></pre>
 <pre><code>##        
 ##         Down Up
 ##   FALSE   20 25
 ##   TRUE    23 36</code></pre>
-<pre class="r"><code>confusionMatrix(data=factor(yhat1&gt;=0.5),reference=factor(test$Direction==&quot;Up&quot;),positive=&quot;TRUE&quot;)</code></pre>
+<pre class="r"><code>confusionMatrix(data=factor(yhat1[!train]&gt;=0.5),
+                reference=factor(test.subset$Direction==&quot;Up&quot;),
+                positive=&quot;TRUE&quot;)</code></pre>
 <pre><code>## Confusion Matrix and Statistics
 ## 
 ##           Reference
@@ -508,11 +519,12 @@ table(yhat1&gt;=0.5,test$Direction)</code></pre>
 </div>
 <div id="e" class="section level3">
 <h3>e</h3>
-<p>Repeating part d with LDA</p>
-<pre class="r"><code>weekly.lda2 &lt;- lda(Direction ~ Lag2 + Volume,
-                  data = train
+<p>Repeating part d with LDA.</p>
+<pre class="r"><code>weekly.lda0 &lt;- lda(Direction ~ Lag2 + Volume,
+                  data = weekly,
+                  subset = train
                   )
-summary(weekly.lda2)</code></pre>
+summary(weekly.lda0)</code></pre>
 <pre><code>##         Length Class  Mode     
 ## prior   2      -none- numeric  
 ## counts  2      -none- numeric  
@@ -521,17 +533,774 @@ summary(weekly.lda2)</code></pre>
 ## lev     2      -none- character
 ## svd     1      -none- numeric  
 ## N       1      -none- numeric  
-## call    3      -none- call     
+## call    4      -none- call     
 ## terms   3      terms  call     
 ## xlevels 0      -none- list</code></pre>
-<p>We can use this model to compute a confusion matrix for the years 2009 &amp; 2010:</p>
-<pre class="r"><code>yhat2=predict(weekly.lda2,
-              test,
+<p>We can use this model to compute a confusion matrix and fraction of correct predictions (reported as Accuracy from the confusionMatrix function output) for the years 2009 &amp; 2010:</p>
+<pre class="r"><code>yhat2=predict(weekly.lda0,
+              weekly,
               type=&quot;response&quot;)
-# table(yhat2$posterior&gt;=0.5,yhat2$class)
 
-# confusionMatrix(data=factor(yhat2$posterior&gt;=0.5),reference=factor(yhat2$class==&quot;Up&quot;),positive=&quot;TRUE&quot;)</code></pre>
-<p>I wasn’t able to get these confusion matrices to work. Predict outputs a dataframe for the lda object, which I’ve had difficulty creating a confusion matrix from.</p>
+posterior2 &lt;- data.frame(yhat2$posterior)
+
+table(posterior2$Up[!train]&gt;=0.5,test.subset$Direction)</code></pre>
+<pre><code>##        
+##         Down Up
+##   FALSE   20 25
+##   TRUE    23 36</code></pre>
+<pre class="r"><code>confusionMatrix(data=factor(posterior2$Up[!train]&gt;=0.5),
+                reference=factor(test.subset$Direction==&quot;Up&quot;),
+                positive=&quot;TRUE&quot;)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction FALSE TRUE
+##      FALSE    20   25
+##      TRUE     23   36
+##                                          
+##                Accuracy : 0.5385         
+##                  95% CI : (0.438, 0.6367)
+##     No Information Rate : 0.5865         
+##     P-Value [Acc &gt; NIR] : 0.8631         
+##                                          
+##                   Kappa : 0.0549         
+##                                          
+##  Mcnemar&#39;s Test P-Value : 0.8852         
+##                                          
+##             Sensitivity : 0.5902         
+##             Specificity : 0.4651         
+##          Pos Pred Value : 0.6102         
+##          Neg Pred Value : 0.4444         
+##              Prevalence : 0.5865         
+##          Detection Rate : 0.3462         
+##    Detection Prevalence : 0.5673         
+##       Balanced Accuracy : 0.5276         
+##                                          
+##        &#39;Positive&#39; Class : TRUE           
+## </code></pre>
+<p>After converting the posterior values from the data frame output from predicting a .lda object, the prior methods can be used for creation of the confusion matrix.</p>
+</div>
+<div id="f" class="section level3">
+<h3>f</h3>
+<p>Repeat d with QDA. Note that adding trade volume as an additional predictor improves results</p>
+<pre class="r"><code>weekly.qda0 &lt;- qda(Direction ~ Lag2 + Volume,
+                  data = weekly,
+                  subset = train
+                  )
+summary(weekly.qda0)</code></pre>
+<pre><code>##         Length Class  Mode     
+## prior   2      -none- numeric  
+## counts  2      -none- numeric  
+## means   4      -none- numeric  
+## scaling 8      -none- numeric  
+## ldet    2      -none- numeric  
+## lev     2      -none- character
+## N       1      -none- numeric  
+## call    4      -none- call     
+## terms   3      terms  call     
+## xlevels 0      -none- list</code></pre>
+<p>We can use this model to compute a confusion matrix and fraction of correct predictions (reported as Accuracy from the confusionMatrix function output) for the years 2009 &amp; 2010:</p>
+<pre class="r"><code>yhat3=predict(weekly.qda0,
+              weekly,
+              type=&quot;response&quot;)
+
+posterior3 &lt;- data.frame(yhat3$posterior)
+
+table(posterior3$Up[!train]&gt;=0.5, test.subset$Direction)</code></pre>
+<pre><code>##        
+##         Down Up
+##   FALSE   32 44
+##   TRUE    11 17</code></pre>
+<pre class="r"><code>confusionMatrix(data=factor(posterior3$Up[!train]&gt;=0.5),
+                reference=factor(test.subset$Direction==&quot;Up&quot;),
+                positive=&quot;TRUE&quot;)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction FALSE TRUE
+##      FALSE    32   44
+##      TRUE     11   17
+##                                           
+##                Accuracy : 0.4712          
+##                  95% CI : (0.3725, 0.5715)
+##     No Information Rate : 0.5865          
+##     P-Value [Acc &gt; NIR] : 0.9932          
+##                                           
+##                   Kappa : 0.0205          
+##                                           
+##  Mcnemar&#39;s Test P-Value : 1.597e-05       
+##                                           
+##             Sensitivity : 0.2787          
+##             Specificity : 0.7442          
+##          Pos Pred Value : 0.6071          
+##          Neg Pred Value : 0.4211          
+##              Prevalence : 0.5865          
+##          Detection Rate : 0.1635          
+##    Detection Prevalence : 0.2692          
+##       Balanced Accuracy : 0.5114          
+##                                           
+##        &#39;Positive&#39; Class : TRUE            
+## </code></pre>
+</div>
+<div id="g" class="section level3">
+<h3>g</h3>
+<p>Repeat d with KNN with K = 1. Borrowing some of the variable conventions from the code in the text:</p>
+<pre class="r"><code>train.x &lt;- as.data.frame(train.subset$Lag2)
+test.x &lt;- as.data.frame(test.subset$Lag2)
+train.Direction &lt;- as.factor(train.subset$Direction)
+
+set.seed(1237)
+knn.pred1 &lt;- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 1)
+
+table(knn.pred1, test.subset$Direction)</code></pre>
+<pre><code>##          
+## knn.pred1 Down Up
+##      Down   21 30
+##      Up     22 31</code></pre>
+<pre class="r"><code>confusionMatrix(data=knn.pred1,
+                reference=test.subset$Direction,
+                positive=NULL)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction Down Up
+##       Down   21 30
+##       Up     22 31
+##                                           
+##                Accuracy : 0.5             
+##                  95% CI : (0.4003, 0.5997)
+##     No Information Rate : 0.5865          
+##     P-Value [Acc &gt; NIR] : 0.9700          
+##                                           
+##                   Kappa : -0.0033         
+##                                           
+##  Mcnemar&#39;s Test P-Value : 0.3317          
+##                                           
+##             Sensitivity : 0.4884          
+##             Specificity : 0.5082          
+##          Pos Pred Value : 0.4118          
+##          Neg Pred Value : 0.5849          
+##              Prevalence : 0.4135          
+##          Detection Rate : 0.2019          
+##    Detection Prevalence : 0.4904          
+##       Balanced Accuracy : 0.4983          
+##                                           
+##        &#39;Positive&#39; Class : Down            
+## </code></pre>
+</div>
+<div id="h" class="section level3">
+<h3>h</h3>
+<p>Repeat d using naive Bayes.</p>
+<pre class="r"><code>weekly.nb0 &lt;- naiveBayes(Direction ~ Lag2 + Volume,
+                  data = weekly,
+                  subset = train
+                  )
+weekly.nb0</code></pre>
+<pre><code>## 
+## Naive Bayes Classifier for Discrete Predictors
+## 
+## Call:
+## naiveBayes.default(x = X, y = Y, laplace = laplace)
+## 
+## A-priori probabilities:
+## Y
+##      Down        Up 
+## 0.4477157 0.5522843 
+## 
+## Conditional probabilities:
+##       Lag2
+## Y             [,1]     [,2]
+##   Down -0.03568254 2.199504
+##   Up    0.26036581 2.317485
+## 
+##       Volume
+## Y          [,1]     [,2]
+##   Down 1.266966 1.320152
+##   Up   1.156529 1.204614</code></pre>
+<pre class="r"><code>summary(weekly.nb0)</code></pre>
+<pre><code>##           Length Class  Mode     
+## apriori   2      table  numeric  
+## tables    2      -none- list     
+## levels    2      -none- character
+## isnumeric 2      -none- logical  
+## call      4      -none- call</code></pre>
+<p>We can calculate the confusion matrix for this approach:</p>
+<pre class="r"><code>yhat5=predict(weekly.nb0,
+              weekly)
+table(yhat5[!train],test.subset$Direction)</code></pre>
+<pre><code>##       
+##        Down Up
+##   Down   43 57
+##   Up      0  4</code></pre>
+<pre class="r"><code># y5 &lt;- factor(yhat5[-train]==&quot;Up&quot;)
+confusionMatrix(data=yhat5[!train],
+                reference=factor(test.subset$Direction),
+                positive=NULL)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction Down Up
+##       Down   43 57
+##       Up      0  4
+##                                           
+##                Accuracy : 0.4519          
+##                  95% CI : (0.3541, 0.5526)
+##     No Information Rate : 0.5865          
+##     P-Value [Acc &gt; NIR] : 0.9979          
+##                                           
+##                   Kappa : 0.0548          
+##                                           
+##  Mcnemar&#39;s Test P-Value : 1.195e-13       
+##                                           
+##             Sensitivity : 1.00000         
+##             Specificity : 0.06557         
+##          Pos Pred Value : 0.43000         
+##          Neg Pred Value : 1.00000         
+##              Prevalence : 0.41346         
+##          Detection Rate : 0.41346         
+##    Detection Prevalence : 0.96154         
+##       Balanced Accuracy : 0.53279         
+##                                           
+##        &#39;Positive&#39; Class : Down            
+## </code></pre>
+</div>
+<div id="i" class="section level3">
+<h3>i</h3>
+<p>Which of these methods appears to provide the best results on this data?</p>
+<p>Based on accuracy, LDA and logistic regression are roughly equally as good, with an accuracy of 0.54. If the consequences of false positives and false negatives are not assumed to be equal then a more in-deapth comparison looking at sensitivity and specificity would be required.</p>
+</div>
+<div id="j" class="section level3">
+<h3>j</h3>
+<p>Experiment with different combinations of predictors, including possible transformations and interactions, for each of the methods. Report the variables, method, and associated confusion matrix that appears to provide the best results on the held out data. Note that you should also experiment with values for K in the KNN classifier.</p>
+<div id="knn" class="section level4">
+<h4>KNN</h4>
+<p>We can first look at different values of K for KNN:</p>
+<pre class="r"><code>set.seed(1237)
+knn.pred2 &lt;- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 2)
+cat(&#39;K=2&#39;)</code></pre>
+<pre><code>## K=2</code></pre>
+<pre class="r"><code>confusionMatrix(data=knn.pred2,
+                reference=test.subset$Direction,
+                positive=NULL)$overall</code></pre>
+<pre><code>##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##      0.4903846     -0.0400000      0.3910217      0.5903092      0.5865385 
+## AccuracyPValue  McnemarPValue 
+##      0.9811153      0.7835305</code></pre>
+<pre class="r"><code>knn.pred3 &lt;- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 3)
+cat(&#39;K=3&#39;)</code></pre>
+<pre><code>## K=3</code></pre>
+<pre class="r"><code>confusionMatrix(data=knn.pred3,
+                reference=test.subset$Direction,
+                positive=NULL)$overall</code></pre>
+<pre><code>##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##     0.53846154     0.02156017     0.43795494     0.63672117     0.58653846 
+## AccuracyPValue  McnemarPValue 
+##     0.86307929     0.31232142</code></pre>
+<pre class="r"><code>knn.pred4 &lt;- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 4)
+cat(&#39;K=4&#39;)</code></pre>
+<pre><code>## K=4</code></pre>
+<pre class="r"><code>confusionMatrix(data=knn.pred4,
+                reference=test.subset$Direction,
+                positive=NULL)$overall</code></pre>
+<pre><code>##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##      0.5769231      0.1155779      0.4761306      0.6732192      0.5865385 
+## AccuracyPValue  McnemarPValue 
+##      0.6193258      0.6510766</code></pre>
+<pre class="r"><code>knn.pred5 &lt;- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 5)
+cat(&#39;K=5&#39;)</code></pre>
+<pre><code>## K=5</code></pre>
+<pre class="r"><code>confusionMatrix(data=knn.pred5,
+                reference=test.subset$Direction,
+                positive=NULL)$overall</code></pre>
+<pre><code>##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##      0.5288462      0.0046875      0.4284988      0.6275084      0.5865385 
+## AccuracyPValue  McnemarPValue 
+##      0.9016838      0.3913659</code></pre>
+<pre class="r"><code>knn.pred6 &lt;- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 6)
+cat(&#39;K=6&#39;)</code></pre>
+<pre><code>## K=6</code></pre>
+<pre class="r"><code>confusionMatrix(data=knn.pred6,
+                reference=test.subset$Direction,
+                positive=NULL)$overall</code></pre>
+<pre><code>##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##     0.50961538    -0.02157165     0.40969083     0.60897829     0.58653846 
+## AccuracyPValue  McnemarPValue 
+##     0.95396063     0.77943453</code></pre>
+<pre class="r"><code>knn.pred7 &lt;- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 7)
+cat(&#39;K=7&#39;)</code></pre>
+<pre><code>## K=7</code></pre>
+<pre class="r"><code>confusionMatrix(data=knn.pred7,
+                reference=test.subset$Direction,
+                positive=NULL)$overall</code></pre>
+<pre><code>##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##      0.5480769      0.0453125      0.4474460      0.6458988      0.5865385 
+## AccuracyPValue  McnemarPValue 
+##      0.8151603      0.3814706</code></pre>
+<pre class="r"><code>knn.pred8 &lt;- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 8)
+cat(&#39;K=8&#39;)</code></pre>
+<pre><code>## K=8</code></pre>
+<pre class="r"><code>confusionMatrix(data=knn.pred8,
+                reference=test.subset$Direction,
+                positive=NULL)$overall</code></pre>
+<pre><code>##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##     0.53846154     0.02841573     0.43795494     0.63672117     0.58653846 
+## AccuracyPValue  McnemarPValue 
+##     0.86307929     0.47048642</code></pre>
+<pre class="r"><code>knn.pred9 &lt;- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 9)
+cat(&#39;K=9&#39;)</code></pre>
+<pre><code>## K=9</code></pre>
+<pre class="r"><code>confusionMatrix(data=knn.pred9,
+                reference=test.subset$Direction,
+                positive=NULL)$overall</code></pre>
+<pre><code>##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##      0.5576923      0.0688984      0.4569722      0.6550412      0.5865385 
+## AccuracyPValue  McnemarPValue 
+##      0.7579156      0.4609948</code></pre>
+<pre class="r"><code>knn.pred10 &lt;- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 10)
+cat(&#39;K=10&#39;)</code></pre>
+<pre><code>## K=10</code></pre>
+<pre class="r"><code>confusionMatrix(data=knn.pred10,
+                reference=test.subset$Direction,
+                positive=NULL)$overall</code></pre>
+<pre><code>##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##      0.5576923      0.0688984      0.4569722      0.6550412      0.5865385 
+## AccuracyPValue  McnemarPValue 
+##      0.7579156      0.4609948</code></pre>
+<pre class="r"><code>knn.pred11 &lt;- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 11)
+cat(&#39;K=11&#39;)</code></pre>
+<pre><code>## K=11</code></pre>
+<pre class="r"><code>confusionMatrix(data=knn.pred11,
+                reference=test.subset$Direction,
+                positive=NULL)$overall</code></pre>
+<pre><code>##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##     0.54807692     0.05855162     0.44744603     0.64589884     0.58653846 
+## AccuracyPValue  McnemarPValue 
+##     0.81516031     0.77049308</code></pre>
+<pre class="r"><code>knn.pred12 &lt;- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 12)
+cat(&#39;K=12&#39;)</code></pre>
+<pre><code>## K=12</code></pre>
+<pre class="r"><code>confusionMatrix(data=knn.pred12,
+                reference=test.subset$Direction,
+                positive=NULL)$overall</code></pre>
+<pre><code>##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##      0.5961538      0.1616123      0.4954323      0.6912528      0.5865385 
+## AccuracyPValue  McnemarPValue 
+##      0.4626481      0.8773706</code></pre>
+<pre class="r"><code>knn.pred13 &lt;- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 13)
+cat(&#39;K=13&#39;)</code></pre>
+<pre><code>## K=13</code></pre>
+<pre class="r"><code>confusionMatrix(data=knn.pred13,
+                reference=test.subset$Direction,
+                positive=NULL)$overall</code></pre>
+<pre><code>##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##      0.5769231      0.1216891      0.4761306      0.6732192      0.5865385 
+## AccuracyPValue  McnemarPValue 
+##      0.6193258      0.8801685</code></pre>
+<pre class="r"><code>knn.pred14 &lt;- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 14)
+cat(&#39;K=14&#39;)</code></pre>
+<pre><code>## K=14</code></pre>
+<pre class="r"><code>confusionMatrix(data=knn.pred14,
+                reference=test.subset$Direction,
+                positive=NULL)$overall</code></pre>
+<pre><code>##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##      0.5865385      0.1446060      0.4857634      0.6822542      0.5865385 
+## AccuracyPValue  McnemarPValue 
+##      0.5418874      1.0000000</code></pre>
+<pre class="r"><code>knn.pred15 &lt;- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 15)
+cat(&#39;K=15&#39;)</code></pre>
+<pre><code>## K=15</code></pre>
+<pre class="r"><code>confusionMatrix(data=knn.pred15,
+                reference=test.subset$Direction,
+                positive=NULL)$overall</code></pre>
+<pre><code>##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##      0.5865385      0.1386749      0.4857634      0.6822542      0.5865385 
+## AccuracyPValue  McnemarPValue 
+##      0.5418874      0.7603683</code></pre>
+<pre class="r"><code>knn.pred20 &lt;- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 20)
+cat(&#39;K=20&#39;)</code></pre>
+<pre><code>## K=20</code></pre>
+<pre class="r"><code>confusionMatrix(data=knn.pred20,
+                reference=test.subset$Direction,
+                positive=NULL)$overall</code></pre>
+<pre><code>##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##      0.6057692      0.1843917      0.5051377      0.7002144      0.5865385 
+## AccuracyPValue  McnemarPValue 
+##      0.3846868      1.0000000</code></pre>
+<pre class="r"><code>knn.pred25 &lt;- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 25)
+cat(&#39;K=25&#39;)</code></pre>
+<pre><code>## K=25</code></pre>
+<pre class="r"><code>confusionMatrix(data=knn.pred25,
+                reference=test.subset$Direction,
+                positive=NULL)$overall</code></pre>
+<pre><code>##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##      0.5576923      0.0880671      0.4569722      0.6550412      0.5865385 
+## AccuracyPValue  McnemarPValue 
+##      0.7579156      1.0000000</code></pre>
+<p>Accuracy seems to improve with increasing values of K, until around k=10. With an accuracy of 0.596 achieved at K=12, this is the best result so far. However, KNN may benefit from predictors whic were not significant in the logistic regression:</p>
+<pre class="r"><code>set.seed(1237)
+train.x1 &lt;- cbind(train.subset$Lag1, train.subset$Lag2)
+test.x1 &lt;- cbind(test.subset$Lag1, test.subset$Lag2)
+train.Direction &lt;- as.factor(train.subset$Direction)
+
+knn.pred.x1 &lt;- knn(train = train.x1, 
+                test = test.x1,
+                cl = train.Direction, 
+                k = 12)
+cat(&#39;addLag1&#39;)</code></pre>
+<pre><code>## addLag1</code></pre>
+<pre class="r"><code>confusionMatrix(data=knn.pred.x1,
+                reference=test.subset$Direction,
+                positive=NULL)$overall</code></pre>
+<pre><code>##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##     0.50961538    -0.01453711     0.40969083     0.60897829     0.58653846 
+## AccuracyPValue  McnemarPValue 
+##     0.95396063     1.00000000</code></pre>
+<pre class="r"><code>train.x3 &lt;- cbind(train.subset$Lag3, train.subset$Lag2)
+test.x3 &lt;- cbind(test.subset$Lag3, test.subset$Lag2)
+train.Direction &lt;- as.factor(train.subset$Direction)
+
+knn.pred.x3 &lt;- knn(train = train.x3, 
+                test = test.x3,
+                cl = train.Direction, 
+                k = 12)
+cat(&#39;addLag3&#39;)</code></pre>
+<pre><code>## addLag3</code></pre>
+<pre class="r"><code>confusionMatrix(data=knn.pred.x3,
+                reference=test.subset$Direction,
+                positive=NULL)$overall</code></pre>
+<pre><code>##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##     0.56730769     0.07290016     0.46653366     0.66414813     0.58653846 
+## AccuracyPValue  McnemarPValue 
+##     0.69210944     0.13603713</code></pre>
+<pre class="r"><code>train.x4 &lt;- cbind(train.subset$Lag4, train.subset$Lag2)
+test.x4 &lt;- cbind(test.subset$Lag4, test.subset$Lag2)
+train.Direction &lt;- as.factor(train.subset$Direction)
+
+knn.pred.x4 &lt;- knn(train = train.x4, 
+                test = test.x4,
+                cl = train.Direction, 
+                k = 12)
+cat(&#39;addLag4&#39;)</code></pre>
+<pre><code>## addLag4</code></pre>
+<pre class="r"><code>confusionMatrix(data=knn.pred.x4,
+                reference=test.subset$Direction,
+                positive=NULL)$overall</code></pre>
+<pre><code>##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##     0.54807692     0.05855162     0.44744603     0.64589884     0.58653846 
+## AccuracyPValue  McnemarPValue 
+##     0.81516031     0.77049308</code></pre>
+<pre class="r"><code>train.x5 &lt;- cbind(train.subset$Lag5, train.subset$Lag2)
+test.x5 &lt;- cbind(test.subset$Lag5, test.subset$Lag2)
+train.Direction &lt;- as.factor(train.subset$Direction)
+
+knn.pred.x5 &lt;- knn(train = train.x5, 
+                test = test.x5,
+                cl = train.Direction, 
+                k = 12)
+cat(&#39;addLag5&#39;)</code></pre>
+<pre><code>## addLag5</code></pre>
+<pre class="r"><code>confusionMatrix(data=knn.pred.x5,
+                reference=test.subset$Direction,
+                positive=NULL)$overall</code></pre>
+<pre><code>##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##      0.5769231      0.1277164      0.4761306      0.6732192      0.5865385 
+## AccuracyPValue  McnemarPValue 
+##      0.6193258      1.0000000</code></pre>
+<p>None of these additional variables improve accuracy. We can proceed to LDA.</p>
+</div>
+<div id="lda" class="section level4">
+<h4>LDA</h4>
+<p>Factors which were not found significant in logistic regression may improve LDA performance.</p>
+<pre class="r"><code>weekly.lda1 &lt;- lda(Direction ~ Lag1 + Lag2 + Volume,
+                  data = weekly,
+                  subset = train
+                  )
+yhat.lda1=predict(weekly.lda1,
+              weekly,
+              type=&quot;response&quot;)
+posterior.lda1 &lt;- data.frame(yhat.lda1$posterior)
+cat(&#39;Add Lag1&#39;)</code></pre>
+<pre><code>## Add Lag1</code></pre>
+<pre class="r"><code>confusionMatrix(data=factor(posterior.lda1$Up[!train]&gt;=0.5),
+                reference=factor(test.subset$Direction==&quot;Up&quot;),
+                positive=&quot;TRUE&quot;)$overall</code></pre>
+<pre><code>##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##     0.52884615     0.08213256     0.42849878     0.62750843     0.58653846 
+## AccuracyPValue  McnemarPValue 
+##     0.90168381     0.02227098</code></pre>
+<pre class="r"><code>weekly.lda3 &lt;- lda(Direction ~ Lag3 + Lag2 + Volume,
+                  data = weekly,
+                  subset = train
+                  )
+yhat.lda3=predict(weekly.lda3,
+              weekly,
+              type=&quot;response&quot;)
+posterior.lda3 &lt;- data.frame(yhat.lda3$posterior)
+cat(&#39;Add Lag3&#39;)</code></pre>
+<pre><code>## Add Lag3</code></pre>
+<pre class="r"><code>confusionMatrix(data=factor(posterior.lda3$Up[!train]&gt;=0.5),
+                reference=factor(test.subset$Direction==&quot;Up&quot;),
+                positive=&quot;TRUE&quot;)$overall</code></pre>
+<pre><code>##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##      0.5673077      0.1288161      0.4665337      0.6641481      0.5865385 
+## AccuracyPValue  McnemarPValue 
+##      0.6921094      0.3710934</code></pre>
+<pre class="r"><code>weekly.lda4 &lt;- lda(Direction ~ Lag4 + Lag2 + Volume,
+                  data = weekly,
+                  subset = train
+                  )
+yhat.lda4=predict(weekly.lda4,
+              weekly,
+              type=&quot;response&quot;)
+posterior.lda4 &lt;- data.frame(yhat.lda4$posterior)
+cat(&#39;Add Lag4&#39;)</code></pre>
+<pre><code>## Add Lag4</code></pre>
+<pre class="r"><code>confusionMatrix(data=factor(posterior.lda4$Up[!train]&gt;=0.5),
+                reference=factor(test.subset$Direction==&quot;Up&quot;),
+                positive=&quot;TRUE&quot;)$overall</code></pre>
+<pre><code>##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##     0.52884615     0.05137751     0.42849878     0.62750843     0.58653846 
+## AccuracyPValue  McnemarPValue 
+##     0.90168381     0.39136594</code></pre>
+<pre class="r"><code>weekly.lda5 &lt;- lda(Direction ~ Lag5 + Lag2 + Volume,
+                  data = weekly,
+                  subset = train
+                  )
+yhat.lda5=predict(weekly.lda5,
+              weekly,
+              type=&quot;response&quot;)
+posterior.lda5 &lt;- data.frame(yhat.lda5$posterior)
+cat(&#39;Add Lag5&#39;)</code></pre>
+<pre><code>## Add Lag5</code></pre>
+<pre class="r"><code>confusionMatrix(data=factor(posterior.lda5$Up[!train]&gt;=0.5),
+                reference=factor(test.subset$Direction==&quot;Up&quot;),
+                positive=&quot;TRUE&quot;)$overall</code></pre>
+<pre><code>##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##    0.490384615   -0.005839416    0.391021715    0.590309167    0.586538462 
+## AccuracyPValue  McnemarPValue 
+##    0.981115333    0.099285635</code></pre>
+<p>Adding Lag3 to Lag2 marginally improves accuracy from 0.538 to 0.567. This is still not as good as what was acheived with KNN.</p>
+</div>
+<div id="qda" class="section level4">
+<h4>QDA</h4>
+<p>We can repeat the above search for variables with the QDA method:</p>
+<pre class="r"><code>weekly.qda1 &lt;- qda(Direction ~ Lag1 + Lag2 + Volume,
+                  data = weekly,
+                  subset = train
+                  )
+yhat.qda1=predict(weekly.qda1,
+              weekly,
+              type=&quot;response&quot;)
+posterior.qda1 &lt;- data.frame(yhat.qda1$posterior)
+cat(&#39;Add Lag1&#39;)</code></pre>
+<pre><code>## Add Lag1</code></pre>
+<pre class="r"><code>confusionMatrix(data=factor(posterior.qda1$Up[!train]&gt;=0.5),
+                reference=factor(test.subset$Direction==&quot;Up&quot;),
+                positive=&quot;TRUE&quot;)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction FALSE TRUE
+##      FALSE    31   44
+##      TRUE     12   17
+##                                          
+##                Accuracy : 0.4615         
+##                  95% CI : (0.3633, 0.562)
+##     No Information Rate : 0.5865         
+##     P-Value [Acc &gt; NIR] : 0.9962         
+##                                          
+##                   Kappa : -3e-04         
+##                                          
+##  Mcnemar&#39;s Test P-Value : 3.435e-05      
+##                                          
+##             Sensitivity : 0.2787         
+##             Specificity : 0.7209         
+##          Pos Pred Value : 0.5862         
+##          Neg Pred Value : 0.4133         
+##              Prevalence : 0.5865         
+##          Detection Rate : 0.1635         
+##    Detection Prevalence : 0.2788         
+##       Balanced Accuracy : 0.4998         
+##                                          
+##        &#39;Positive&#39; Class : TRUE           
+## </code></pre>
+<pre class="r"><code>weekly.qda3 &lt;- qda(Direction ~ Lag3 + Lag2 + Volume,
+                  data = weekly,
+                  subset = train
+                  )
+yhat.qda3=predict(weekly.qda3,
+              weekly,
+              type=&quot;response&quot;)
+posterior.qda3 &lt;- data.frame(yhat.qda3$posterior)
+cat(&#39;Add Lag3&#39;)</code></pre>
+<pre><code>## Add Lag3</code></pre>
+<pre class="r"><code>confusionMatrix(data=factor(posterior.qda3$Up[!train]&gt;=0.5),
+                reference=factor(test.subset$Direction==&quot;Up&quot;),
+                positive=&quot;TRUE&quot;)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction FALSE TRUE
+##      FALSE    36   47
+##      TRUE      7   14
+##                                           
+##                Accuracy : 0.4808          
+##                  95% CI : (0.3817, 0.5809)
+##     No Information Rate : 0.5865          
+##     P-Value [Acc &gt; NIR] : 0.9885          
+##                                           
+##                   Kappa : 0.0587          
+##                                           
+##  Mcnemar&#39;s Test P-Value : 1.113e-07       
+##                                           
+##             Sensitivity : 0.2295          
+##             Specificity : 0.8372          
+##          Pos Pred Value : 0.6667          
+##          Neg Pred Value : 0.4337          
+##              Prevalence : 0.5865          
+##          Detection Rate : 0.1346          
+##    Detection Prevalence : 0.2019          
+##       Balanced Accuracy : 0.5334          
+##                                           
+##        &#39;Positive&#39; Class : TRUE            
+## </code></pre>
+<pre class="r"><code>weekly.qda4 &lt;- qda(Direction ~ Lag4 + Lag2 + Volume,
+                  data = weekly,
+                  subset = train
+                  )
+yhat.qda4=predict(weekly.qda4,
+              weekly,
+              type=&quot;response&quot;)
+posterior.qda4 &lt;- data.frame(yhat.qda4$posterior)
+cat(&#39;Add Lag4&#39;)</code></pre>
+<pre><code>## Add Lag4</code></pre>
+<pre class="r"><code>confusionMatrix(data=factor(posterior.qda4$Up[!train]&gt;=0.5),
+                reference=factor(test.subset$Direction==&quot;Up&quot;),
+                positive=&quot;TRUE&quot;)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction FALSE TRUE
+##      FALSE    33   48
+##      TRUE     10   13
+##                                         
+##                Accuracy : 0.4423        
+##                  95% CI : (0.345, 0.543)
+##     No Information Rate : 0.5865        
+##     P-Value [Acc &gt; NIR] : 0.9989        
+##                                         
+##                   Kappa : -0.0172       
+##                                         
+##  Mcnemar&#39;s Test P-Value : 1.184e-06     
+##                                         
+##             Sensitivity : 0.2131        
+##             Specificity : 0.7674        
+##          Pos Pred Value : 0.5652        
+##          Neg Pred Value : 0.4074        
+##              Prevalence : 0.5865        
+##          Detection Rate : 0.1250        
+##    Detection Prevalence : 0.2212        
+##       Balanced Accuracy : 0.4903        
+##                                         
+##        &#39;Positive&#39; Class : TRUE          
+## </code></pre>
+<pre class="r"><code>weekly.qda5 &lt;- qda(Direction ~ Lag5 + Lag2 + Volume,
+                  data = weekly,
+                  subset = train
+                  )
+yhat.qda5=predict(weekly.qda5,
+              weekly,
+              type=&quot;response&quot;)
+posterior.qda5 &lt;- data.frame(yhat.qda5$posterior)
+cat(&#39;Add Lag5&#39;)</code></pre>
+<pre><code>## Add Lag5</code></pre>
+<pre class="r"><code>confusionMatrix(data=factor(posterior.qda5$Up[!train]&gt;=0.5),
+                reference=factor(test.subset$Direction==&quot;Up&quot;),
+                positive=&quot;TRUE&quot;)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction FALSE TRUE
+##      FALSE    31   42
+##      TRUE     12   19
+##                                           
+##                Accuracy : 0.4808          
+##                  95% CI : (0.3817, 0.5809)
+##     No Information Rate : 0.5865          
+##     P-Value [Acc &gt; NIR] : 0.9885          
+##                                           
+##                   Kappa : 0.0294          
+##                                           
+##  Mcnemar&#39;s Test P-Value : 7.933e-05       
+##                                           
+##             Sensitivity : 0.3115          
+##             Specificity : 0.7209          
+##          Pos Pred Value : 0.6129          
+##          Neg Pred Value : 0.4247          
+##              Prevalence : 0.5865          
+##          Detection Rate : 0.1827          
+##    Detection Prevalence : 0.2981          
+##       Balanced Accuracy : 0.5162          
+##                                           
+##        &#39;Positive&#39; Class : TRUE            
+## </code></pre>
+<p>Accuracy improves marginally from 0.47 to 0.48 when Lag5 is added.</p>
+</div>
+<div id="conclusion" class="section level4">
+<h4>Conclusion</h4>
+<p>The best results were found with KNN using K=12. Further improvements are likely possible.</p>
+</div>
 </div>
 </div>
 </div>
@@ -555,18 +1324,19 @@ summary(weekly.lda2)</code></pre>
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-##  [1] rje_1.10.16     caret_6.0-90    lattice_0.20-45 MASS_7.3-54    
-##  [5] psych_2.1.9     ISLR2_1.3-1     forcats_0.5.1   stringr_1.4.0  
-##  [9] dplyr_1.0.7     purrr_0.3.4     readr_2.1.1     tidyr_1.1.4    
-## [13] tibble_3.1.6    ggplot2_3.3.5   tidyverse_1.3.1
+##  [1] e1071_1.7-9     class_7.3-20    rje_1.10.16     caret_6.0-90   
+##  [5] lattice_0.20-45 MASS_7.3-55     psych_2.1.9     ISLR2_1.3-1    
+##  [9] forcats_0.5.1   stringr_1.4.0   dplyr_1.0.7     purrr_0.3.4    
+## [13] readr_2.1.1     tidyr_1.1.4     tibble_3.1.6    ggplot2_3.3.5  
+## [17] tidyverse_1.3.1
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] nlme_3.1-153         fs_1.5.2             lubridate_1.8.0     
+##  [1] nlme_3.1-155         fs_1.5.2             lubridate_1.8.0     
 ##  [4] httr_1.4.2           tools_4.1.2          backports_1.4.1     
-##  [7] utf8_1.2.2           R6_2.5.1             rpart_4.1-15        
-## [10] DBI_1.1.2            colorspace_2.0-2     nnet_7.3-16         
+##  [7] utf8_1.2.2           R6_2.5.1             rpart_4.1.16        
+## [10] DBI_1.1.2            colorspace_2.0-2     nnet_7.3-17         
 ## [13] withr_2.4.3          tidyselect_1.1.1     mnormt_2.0.2        
-## [16] compiler_4.1.2       cli_3.1.0            rvest_1.0.2         
+## [16] compiler_4.1.2       cli_3.1.1            rvest_1.0.2         
 ## [19] xml2_1.3.3           labeling_0.4.2       scales_1.1.1        
 ## [22] proxy_0.4-26         digest_0.6.29        rmarkdown_2.11      
 ## [25] pkgconfig_2.0.3      htmltools_0.5.2      parallelly_1.30.0   
@@ -574,23 +1344,22 @@ summary(weekly.lda2)</code></pre>
 ## [31] rlang_0.4.12         readxl_1.3.1         rstudioapi_0.13     
 ## [34] farver_2.1.0         jquerylib_0.1.4      generics_0.1.1      
 ## [37] jsonlite_1.7.3       ModelMetrics_1.2.2.2 magrittr_2.0.1      
-## [40] Matrix_1.3-4         Rcpp_1.0.8           munsell_0.5.0       
+## [40] Matrix_1.4-0         Rcpp_1.0.8           munsell_0.5.0       
 ## [43] fansi_1.0.2          lifecycle_1.0.1      pROC_1.18.0         
 ## [46] stringi_1.7.6        yaml_2.2.1           plyr_1.8.6          
 ## [49] recipes_0.1.17       grid_4.1.2           parallel_4.1.2      
 ## [52] listenv_0.8.0        crayon_1.4.2         haven_2.4.3         
 ## [55] splines_4.1.2        hms_1.1.1            tmvnsim_1.0-2       
-## [58] knitr_1.37           pillar_1.6.4         stats4_4.1.2        
+## [58] knitr_1.37           pillar_1.6.5         stats4_4.1.2        
 ## [61] reshape2_1.4.4       future.apply_1.8.1   codetools_0.2-18    
-## [64] reprex_2.0.1         glue_1.6.0           evaluate_0.14       
+## [64] reprex_2.0.1         glue_1.6.1           evaluate_0.14       
 ## [67] data.table_1.14.2    modelr_0.1.8         vctrs_0.3.8         
 ## [70] tzdb_0.2.0           foreach_1.5.1        cellranger_1.1.0    
 ## [73] gtable_0.3.0         future_1.23.0        assertthat_0.2.1    
 ## [76] xfun_0.29            gower_0.2.2          prodlim_2019.11.13  
-## [79] broom_0.7.11         e1071_1.7-9          class_7.3-19        
-## [82] survival_3.2-13      timeDate_3043.102    iterators_1.0.13    
-## [85] lava_1.6.10          globals_0.14.0       ellipsis_0.3.2      
-## [88] ipred_0.9-12</code></pre>
+## [79] broom_0.7.11         survival_3.2-13      timeDate_3043.102   
+## [82] iterators_1.0.13     lava_1.6.10          globals_0.14.0      
+## [85] ellipsis_0.3.2       ipred_0.9-12</code></pre>
 </div>
 <div id="references" class="section level1">
 <h1>References</h1>

@@ -33,12 +33,13 @@ library(ggplot2)
 # library(nlme)
 # library(doBy)
 # library(geepack)
-# library(rje)
 library(ISLR2)
 library(psych)
 library(MASS)
 library(caret)  #required for confusionMatrix function
 library(rje)
+library(class)  #required for the knn function
+library(e1071)  #required for the naiveBayes function
 ```
 
 # Part 2
@@ -130,7 +131,7 @@ summary(weekly)
 We can create a long-form dataset for easier plotting:
 
 ```{r}
-Weekly_long <- pivot_longer(weekly,
+weekly_long <- pivot_longer(weekly,
                             cols = c("Lag1", "Lag2", "Lag3", "Lag4", "Lag5"),
                             names_to = "Lag",
                             values_to = "Return")
@@ -139,7 +140,7 @@ Weekly_long <- pivot_longer(weekly,
 We can now plot the boxplots:
 
 ```{r}
-ggplot(Weekly_long,
+ggplot(weekly_long,
        aes(x = Lag, y = Return)) +
   geom_boxplot()
 ```
@@ -165,7 +166,7 @@ weekly.glm0 <- glm(Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume,
 summary(weekly.glm0)
 ```
 
-Based on these results, the lag at two weeks seems significant, i.e.'Lag2'.
+Based on these results, the lag at two weeks (Lag2) seems significant.
 
 ### c
 
@@ -175,25 +176,33 @@ Creating the confusion matrix in two different ways:
 yhat0=predict(weekly.glm0,type="response")
 table(yhat0>=0.5,weekly$Direction)
 
-confusionMatrix(data=factor(yhat0>=0.5),reference=factor(weekly$Direction=="Up"),positive="TRUE")
+confusionMatrix(data=factor(yhat0>=0.5),
+                reference=factor(weekly$Direction=="Up"),
+                positive="TRUE")
 ```
 
 The confusion matrix shows correct predictions along the diagonal, and incorrect predictions along the off-diagonals.  Other information can be derived from the table, including PPV, NPV, sensitivity, specificity, etc.
 
 ### d
 
-We will create the training and testing datasets:
+We will specify the training and testing datasets:
 
-```{r chunk9}
-train <- subset(weekly, Year<2009)
-test <- subset(weekly, Year>2008)
-dim(train)
+```{r}
+train <- (weekly$Year < 2009)
+
+train.subset <- subset(weekly, Year<2009)
+test.subset <- subset(weekly, Year>2008)
+dim(train.subset)
+dim(test.subset)
 ```
+
+Perform the logistic regression:
 
 ```{r}
 weekly.glm1 <- glm(Direction ~ Lag2 + Volume,
-                  data = train,
-                  family = binomial
+                  data = weekly,
+                  family = binomial,
+                  subset = train
                   )
 summary(weekly.glm1)
 ```
@@ -202,37 +211,450 @@ We can use this model to compute a confusion matrix for the years 2009 & 2010:
 
 ```{r}
 yhat1=predict(weekly.glm1,
-              test,
+              weekly,
               type="response")
-table(yhat1>=0.5,test$Direction)
+table(yhat1[!train]>=0.5,test.subset$Direction)
 
-confusionMatrix(data=factor(yhat1>=0.5),reference=factor(test$Direction=="Up"),positive="TRUE")
-
+confusionMatrix(data=factor(yhat1[!train]>=0.5),
+                reference=factor(test.subset$Direction=="Up"),
+                positive="TRUE")
 ```
 
 ### e
 
-Repeating part d with LDA
+Repeating part d with LDA.
+
 ```{r}
-weekly.lda2 <- lda(Direction ~ Lag2 + Volume,
-                  data = train
+weekly.lda0 <- lda(Direction ~ Lag2 + Volume,
+                  data = weekly,
+                  subset = train
                   )
-summary(weekly.lda2)
+summary(weekly.lda0)
 ```
 
-We can use this model to compute a confusion matrix for the years 2009 & 2010:
+We can use this model to compute a confusion matrix and fraction of correct predictions (reported as Accuracy from the confusionMatrix function output) for the years 2009 & 2010:
 
 ```{r}
-yhat2=predict(weekly.lda2,
-              test,
+yhat2=predict(weekly.lda0,
+              weekly,
               type="response")
-# table(yhat2$posterior>=0.5,yhat2$class)
 
-# confusionMatrix(data=factor(yhat2$posterior>=0.5),reference=factor(yhat2$class=="Up"),positive="TRUE")
+posterior2 <- data.frame(yhat2$posterior)
+
+table(posterior2$Up[!train]>=0.5,test.subset$Direction)
+
+confusionMatrix(data=factor(posterior2$Up[!train]>=0.5),
+                reference=factor(test.subset$Direction=="Up"),
+                positive="TRUE")
+```
+
+After converting the posterior values from the data frame output from predicting a .lda object, the prior methods can be used for creation of the confusion matrix.
+
+### f
+
+Repeat d with QDA.  Note that adding trade volume as an additional predictor improves results
+
+```{r}
+weekly.qda0 <- qda(Direction ~ Lag2 + Volume,
+                  data = weekly,
+                  subset = train
+                  )
+summary(weekly.qda0)
+```
+
+We can use this model to compute a confusion matrix and fraction of correct predictions (reported as Accuracy from the confusionMatrix function output) for the years 2009 & 2010:
+
+```{r}
+yhat3=predict(weekly.qda0,
+              weekly,
+              type="response")
+
+posterior3 <- data.frame(yhat3$posterior)
+
+table(posterior3$Up[!train]>=0.5, test.subset$Direction)
+
+confusionMatrix(data=factor(posterior3$Up[!train]>=0.5),
+                reference=factor(test.subset$Direction=="Up"),
+                positive="TRUE")
+```
+
+### g
+
+Repeat d with KNN with K = 1.  Borrowing some of the variable conventions from the code in the text:
+
+```{r}
+train.x <- as.data.frame(train.subset$Lag2)
+test.x <- as.data.frame(test.subset$Lag2)
+train.Direction <- as.factor(train.subset$Direction)
+
+set.seed(1237)
+knn.pred1 <- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 1)
+
+table(knn.pred1, test.subset$Direction)
+
+confusionMatrix(data=knn.pred1,
+                reference=test.subset$Direction,
+                positive=NULL)
+```
+
+### h
+
+Repeat d using naive Bayes.
+
+```{r}
+weekly.nb0 <- naiveBayes(Direction ~ Lag2 + Volume,
+                  data = weekly,
+                  subset = train
+                  )
+weekly.nb0
+summary(weekly.nb0)
+```
+
+We can calculate the confusion matrix for this approach:
+
+```{r}
+yhat5=predict(weekly.nb0,
+              weekly)
+table(yhat5[!train],test.subset$Direction)
+
+# y5 <- factor(yhat5[-train]=="Up")
+confusionMatrix(data=yhat5[!train],
+                reference=factor(test.subset$Direction),
+                positive=NULL)
+```
+
+### i
+
+Which of these methods appears to provide the best results on this data?
+
+Based on accuracy, LDA and logistic regression are roughly equally as good, with an accuracy of 0.54.  If the consequences of false positives and false negatives are not assumed to be equal then a more in-deapth comparison looking at sensitivity and specificity would be required.
+
+### j
+
+Experiment with different combinations of predictors, including possible transformations and interactions, for each of the methods. Report the variables, method, and associated confusion matrix that appears to provide the best results on the held out data. Note that you should also experiment with values for K in the KNN classifier.
+
+#### KNN
+
+We can first look at different values of K for KNN:
+
+```{r}
+set.seed(1237)
+knn.pred2 <- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 2)
+cat('K=2')
+confusionMatrix(data=knn.pred2,
+                reference=test.subset$Direction,
+                positive=NULL)$overall
+knn.pred3 <- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 3)
+cat('K=3')
+confusionMatrix(data=knn.pred3,
+                reference=test.subset$Direction,
+                positive=NULL)$overall
+knn.pred4 <- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 4)
+cat('K=4')
+confusionMatrix(data=knn.pred4,
+                reference=test.subset$Direction,
+                positive=NULL)$overall
+knn.pred5 <- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 5)
+cat('K=5')
+confusionMatrix(data=knn.pred5,
+                reference=test.subset$Direction,
+                positive=NULL)$overall
+knn.pred6 <- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 6)
+cat('K=6')
+confusionMatrix(data=knn.pred6,
+                reference=test.subset$Direction,
+                positive=NULL)$overall
+knn.pred7 <- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 7)
+cat('K=7')
+confusionMatrix(data=knn.pred7,
+                reference=test.subset$Direction,
+                positive=NULL)$overall
+knn.pred8 <- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 8)
+cat('K=8')
+confusionMatrix(data=knn.pred8,
+                reference=test.subset$Direction,
+                positive=NULL)$overall
+knn.pred9 <- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 9)
+cat('K=9')
+confusionMatrix(data=knn.pred9,
+                reference=test.subset$Direction,
+                positive=NULL)$overall
+knn.pred10 <- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 10)
+cat('K=10')
+confusionMatrix(data=knn.pred10,
+                reference=test.subset$Direction,
+                positive=NULL)$overall
+knn.pred11 <- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 11)
+cat('K=11')
+confusionMatrix(data=knn.pred11,
+                reference=test.subset$Direction,
+                positive=NULL)$overall
+knn.pred12 <- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 12)
+cat('K=12')
+confusionMatrix(data=knn.pred12,
+                reference=test.subset$Direction,
+                positive=NULL)$overall
+knn.pred13 <- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 13)
+cat('K=13')
+confusionMatrix(data=knn.pred13,
+                reference=test.subset$Direction,
+                positive=NULL)$overall
+knn.pred14 <- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 14)
+cat('K=14')
+confusionMatrix(data=knn.pred14,
+                reference=test.subset$Direction,
+                positive=NULL)$overall
+knn.pred15 <- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 15)
+cat('K=15')
+confusionMatrix(data=knn.pred15,
+                reference=test.subset$Direction,
+                positive=NULL)$overall
+knn.pred20 <- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 20)
+cat('K=20')
+confusionMatrix(data=knn.pred20,
+                reference=test.subset$Direction,
+                positive=NULL)$overall
+knn.pred25 <- knn(train = train.x, 
+                test = test.x,
+                cl = train.Direction, 
+                k = 25)
+cat('K=25')
+confusionMatrix(data=knn.pred25,
+                reference=test.subset$Direction,
+                positive=NULL)$overall
+```
+
+Accuracy seems to improve with increasing values of K, until around k=10.  With an accuracy of 0.596 achieved at K=12, this is the best result so far.  However, KNN may benefit from predictors whic were not significant in the logistic regression:
+
+```{r}
+set.seed(1237)
+train.x1 <- cbind(train.subset$Lag1, train.subset$Lag2)
+test.x1 <- cbind(test.subset$Lag1, test.subset$Lag2)
+train.Direction <- as.factor(train.subset$Direction)
+
+knn.pred.x1 <- knn(train = train.x1, 
+                test = test.x1,
+                cl = train.Direction, 
+                k = 12)
+cat('addLag1')
+confusionMatrix(data=knn.pred.x1,
+                reference=test.subset$Direction,
+                positive=NULL)$overall
+
+train.x3 <- cbind(train.subset$Lag3, train.subset$Lag2)
+test.x3 <- cbind(test.subset$Lag3, test.subset$Lag2)
+train.Direction <- as.factor(train.subset$Direction)
+
+knn.pred.x3 <- knn(train = train.x3, 
+                test = test.x3,
+                cl = train.Direction, 
+                k = 12)
+cat('addLag3')
+confusionMatrix(data=knn.pred.x3,
+                reference=test.subset$Direction,
+                positive=NULL)$overall
+
+train.x4 <- cbind(train.subset$Lag4, train.subset$Lag2)
+test.x4 <- cbind(test.subset$Lag4, test.subset$Lag2)
+train.Direction <- as.factor(train.subset$Direction)
+
+knn.pred.x4 <- knn(train = train.x4, 
+                test = test.x4,
+                cl = train.Direction, 
+                k = 12)
+cat('addLag4')
+confusionMatrix(data=knn.pred.x4,
+                reference=test.subset$Direction,
+                positive=NULL)$overall
+
+train.x5 <- cbind(train.subset$Lag5, train.subset$Lag2)
+test.x5 <- cbind(test.subset$Lag5, test.subset$Lag2)
+train.Direction <- as.factor(train.subset$Direction)
+
+knn.pred.x5 <- knn(train = train.x5, 
+                test = test.x5,
+                cl = train.Direction, 
+                k = 12)
+cat('addLag5')
+confusionMatrix(data=knn.pred.x5,
+                reference=test.subset$Direction,
+                positive=NULL)$overall
 
 ```
 
-I wasn't able to get these confusion matrices to work.  Predict outputs a dataframe for the lda object, which I've had difficulty creating a confusion matrix from.
+None of these additional variables improve accuracy.  We can proceed to LDA.
+
+#### LDA
+
+Factors which were not found significant in logistic regression may improve LDA performance.
+
+```{r}
+weekly.lda1 <- lda(Direction ~ Lag1 + Lag2 + Volume,
+                  data = weekly,
+                  subset = train
+                  )
+yhat.lda1=predict(weekly.lda1,
+              weekly,
+              type="response")
+posterior.lda1 <- data.frame(yhat.lda1$posterior)
+cat('Add Lag1')
+confusionMatrix(data=factor(posterior.lda1$Up[!train]>=0.5),
+                reference=factor(test.subset$Direction=="Up"),
+                positive="TRUE")$overall
+
+weekly.lda3 <- lda(Direction ~ Lag3 + Lag2 + Volume,
+                  data = weekly,
+                  subset = train
+                  )
+yhat.lda3=predict(weekly.lda3,
+              weekly,
+              type="response")
+posterior.lda3 <- data.frame(yhat.lda3$posterior)
+cat('Add Lag3')
+confusionMatrix(data=factor(posterior.lda3$Up[!train]>=0.5),
+                reference=factor(test.subset$Direction=="Up"),
+                positive="TRUE")$overall
+
+weekly.lda4 <- lda(Direction ~ Lag4 + Lag2 + Volume,
+                  data = weekly,
+                  subset = train
+                  )
+yhat.lda4=predict(weekly.lda4,
+              weekly,
+              type="response")
+posterior.lda4 <- data.frame(yhat.lda4$posterior)
+cat('Add Lag4')
+confusionMatrix(data=factor(posterior.lda4$Up[!train]>=0.5),
+                reference=factor(test.subset$Direction=="Up"),
+                positive="TRUE")$overall
+
+weekly.lda5 <- lda(Direction ~ Lag5 + Lag2 + Volume,
+                  data = weekly,
+                  subset = train
+                  )
+yhat.lda5=predict(weekly.lda5,
+              weekly,
+              type="response")
+posterior.lda5 <- data.frame(yhat.lda5$posterior)
+cat('Add Lag5')
+confusionMatrix(data=factor(posterior.lda5$Up[!train]>=0.5),
+                reference=factor(test.subset$Direction=="Up"),
+                positive="TRUE")$overall
+```
+
+Adding Lag3 to Lag2 marginally improves accuracy from 0.538 to 0.567.  This is still not as good as what was acheived with KNN.
+
+#### QDA
+
+We can repeat the above search for variables with the QDA method:
+
+```{r}
+weekly.qda1 <- qda(Direction ~ Lag1 + Lag2 + Volume,
+                  data = weekly,
+                  subset = train
+                  )
+yhat.qda1=predict(weekly.qda1,
+              weekly,
+              type="response")
+posterior.qda1 <- data.frame(yhat.qda1$posterior)
+cat('Add Lag1')
+confusionMatrix(data=factor(posterior.qda1$Up[!train]>=0.5),
+                reference=factor(test.subset$Direction=="Up"),
+                positive="TRUE")
+
+weekly.qda3 <- qda(Direction ~ Lag3 + Lag2 + Volume,
+                  data = weekly,
+                  subset = train
+                  )
+yhat.qda3=predict(weekly.qda3,
+              weekly,
+              type="response")
+posterior.qda3 <- data.frame(yhat.qda3$posterior)
+cat('Add Lag3')
+confusionMatrix(data=factor(posterior.qda3$Up[!train]>=0.5),
+                reference=factor(test.subset$Direction=="Up"),
+                positive="TRUE")
+
+weekly.qda4 <- qda(Direction ~ Lag4 + Lag2 + Volume,
+                  data = weekly,
+                  subset = train
+                  )
+yhat.qda4=predict(weekly.qda4,
+              weekly,
+              type="response")
+posterior.qda4 <- data.frame(yhat.qda4$posterior)
+cat('Add Lag4')
+confusionMatrix(data=factor(posterior.qda4$Up[!train]>=0.5),
+                reference=factor(test.subset$Direction=="Up"),
+                positive="TRUE")
+
+weekly.qda5 <- qda(Direction ~ Lag5 + Lag2 + Volume,
+                  data = weekly,
+                  subset = train
+                  )
+yhat.qda5=predict(weekly.qda5,
+              weekly,
+              type="response")
+posterior.qda5 <- data.frame(yhat.qda5$posterior)
+cat('Add Lag5')
+confusionMatrix(data=factor(posterior.qda5$Up[!train]>=0.5),
+                reference=factor(test.subset$Direction=="Up"),
+                positive="TRUE")
+```
+
+Accuracy improves marginally from 0.47 to 0.48 when Lag5 is added.
+
+#### Conclusion
+
+The best results were found with KNN using K=12.  Further improvements are likely possible.
 
 # Session Info
 

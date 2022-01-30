@@ -17,9 +17,9 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 # library(dplyr)
-# library(readxl)
-library(tidyverse)
-library(ggplot2)
+library(readxl)
+# library(tidyverse)
+# library(ggplot2)
 # library(CarletonStats)
 # library(pwr)
 # library(BSDA)
@@ -34,205 +34,28 @@ library(ggplot2)
 # library(doBy)
 # library(geepack)
 # library(rje)
-library(ISLR2)
-library(psych)
-library(MASS)
-library(caret)  #required for confusionMatrix function
-library(rje)
+# library(ISLR2)
+# library(psych)
+# library(MASS)
+# library(caret)  #required for confusionMatrix function
+# library(rje)
 ```
 
-# Part 2
+# Part C
 
-## Tarran and Ghahramani Summary
+Chap 5: #2, #9 (use B=1000 and set.seed(1237) in all questions) 
 
- * Tarran and Ghahramani introduce the idea of weak AI and strong AI;$^1$ weak AI is defined as specialized AI which does a particular set of related tasks very well, wheras strong AI is defined as AI in possession of 'general human intelligence', which according to Nick Bostrom entails that the AI would have 'common sense and an effective ability to learn, reason and plan to meet complex information-processing challenges'.
- * Historical examples of weak AI are given; these include Logic Expert, which proved many of the theorems of Bertrand Russell's _Principia Mathmetica_, and General Problem Solver, which solved a limited set of puzzles.  The limiting factor of these AIs was their reliance on search tree algorithms, which become computationally burdensome for more general problems.
- * Expert systems, in which AI is give subject-matter expertise in order to solve a specific real-world problem, is described.  According to Peter Norvig, emulating human expertise in this way has limited applicability because human thought processes are not described sufficiently as to be emulated, and also because a determinist logical approach was taken as opposed to a probabilist approach, which better reflects reality.
- * Judea Pearl's concept of Bayesian Networks was developed, in part, to better implement a probabilistic approach in AI.  Bayesian Networks are DAGs, in which vertices represent variables, and edges represent causation, with the strength of the causation quantified by the conditional probability of the subsequent vertex given a certain value of the previous vertex.
- * Maximum Likelihood Estimation (MLE), in which parameters of an assumed model are found which maximize the likelihood function, which is the joint conditional probability of observing the observed values given certain parameter values of the assumed model.  This is the premise of Cathy O'Neil's book.$^2$
+## 5.2
 
-## Olhede and Wolfe Summary
 
- * Olhede and Wolfe sees to answer the question of legal liability for incorrect algorithmic decision making by describing a tradeoff between four algorithmic traits;$^3$ these include computational complexity, typical performance, stability, and robustness.  It is not clear who is legally responsible for such inevitable tradeoffs in algorithmic design.  Furthermore, the article points out that unfairness and discrimination in training datasets will inevitably produce an algorithm which reproduces the unfairness in the dataset.  
- 
-## Tarran Summary
 
- * Tarran explores possible explanations for the observation that customers prefer items with more reviews even if they is less favourably rated.$^4$  Star ratings provide subjective information, as they do not mean the same things to each consumer or rater; furthermore amazon has started calculating a weighted mean star rating based on rating date, verified status of the rater, and helpfulness of the rater.  Median rating is put forward as a statistical solution to this issue. 
+## 5.9
 
-# Part 3
 
-## 4.6
 
-### a
+# Part D
 
-We are given:
-
-$$\mathbb{logit}[\hat{P}(Y = 1|X)] = \hat{\beta_0} + \hat{\beta_1} X_1 + \hat{\beta_2} X_2$$
-
-Where the logit function is the natural log of the odds.  Expit is the inverse function of logit, therefore:
-
-$$\hat{P}(Y = 1|X) = \mathbb{expit}[\hat{\beta_0} + \hat{\beta_1} X_1 + \hat{\beta_2} X_2]$$
-
-With the given values of $\hat{\beta_i}$, we can evaluate the probability of a student who studies for 40 h and had an undergraduate GPA of 3.5 getting an A in the class:
-
-```{r}
-expit(-6 + 0.05*40  + 1*3.5)
-```
-
-### b
-
-If we are given that the student's undergraduate GPA remains 3.5 ($X_2 = 3.5$), we can find the number of hours ($X_1$) required for the probability of receiving an A to reach 50%; i.e. for $\hat{P}(Y = 1|X) = 0.50$:
-
-$$
-\begin{split}
-0.50 &=  \mathbb{expit}[\hat{\beta_0} + \hat{\beta_1} X_1 + \hat{\beta_2} X_2]\\
-\mathbb{logit}[0.50] &=  \hat{\beta_0} + \hat{\beta_1} X_1 + \hat{\beta_2} X_2\\
-X_1 &= \frac{\mathbb{logit}[0.50] - \hat{\beta_0} - \hat{\beta_2} X_2}{\hat{\beta_1}}
-\end{split}
-$$
-
-We can now evaluate this quantity:
-
-```{r}
-(logit(0.5) -(-6) -(1*3.5))/0.05
-```
-
-We can see that 10 more hours of study would bring this student's probability of receiving an A up to 50%.
-
-## 4.7
-
-This conditional probability can be expressed using Bayes' Thorem:
-
-$$P(Y= yes | X = 4) =  \frac{\pi_{yes} * f_{yes}(X=4)}{\pi_{yes} * f_{yes}(X=4) + \pi_{no} * f_{no}(X=4)}$$
-
-Here $\pi_{yes} = 0.8$ is the probability of issuing dividends, $\pi_{no} = 0.2$ is the probability of not issuing dividends, and $f$ is the normal distribution with $\mu_{yes} = 10$, $\mu_{no} = 0$, and $\sigma^2 = 36$.  This probability can be evaluated in R with the following code:
-
-```{r}
-(0.8*dnorm(4,mean = 10, sd = 6))/(0.8*dnorm(4,mean = 10, sd = 6) + 0.2*dnorm(4,mean = 0, sd = 6))
-```
-
-There is roughly a 75% probability that a company with 4% profitability is the past year will issue dividends.
-
-## 4.13
-
-```{r}
-weekly <- Weekly
-```
-
-### a
-
-Here are summary statistics for each variable in the dataset:
-
-```{r}
-summary(weekly)
-```
-
-We can create a long-form dataset for easier plotting:
-
-```{r}
-Weekly_long <- pivot_longer(weekly,
-                            cols = c("Lag1", "Lag2", "Lag3", "Lag4", "Lag5"),
-                            names_to = "Lag",
-                            values_to = "Return")
-```
-
-We can now plot the boxplots:
-
-```{r}
-ggplot(Weekly_long,
-       aes(x = Lag, y = Return)) +
-  geom_boxplot()
-```
-
-Here we not that Lag1-Lag5 are percentage return for the previous 1-5 weeks respectively.  We can now make a scatterplot matrix:
-
-```{r}
-pairs.panels(
-  weekly,
-  stars = TRUE
-  )
-```
-
-We can see that there is some correlation among lag variables, and a large correlation between trading volume and year.
-
-### b
-
-```{r}
-weekly.glm0 <- glm(Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume,
-                  data = weekly,
-                  family = binomial
-                  )
-summary(weekly.glm0)
-```
-
-Based on these results, the lag at two weeks seems significant, i.e.'Lag2'.
-
-### c
-
-Creating the confusion matrix in two different ways:
-
-```{r}
-yhat0=predict(weekly.glm0,type="response")
-table(yhat0>=0.5,weekly$Direction)
-
-confusionMatrix(data=factor(yhat0>=0.5),reference=factor(weekly$Direction=="Up"),positive="TRUE")
-```
-
-The confusion matrix shows correct predictions along the diagonal, and incorrect predictions along the off-diagonals.  Other information can be derived from the table, including PPV, NPV, sensitivity, specificity, etc.
-
-### d
-
-We will create the training and testing datasets:
-
-```{r chunk9}
-train <- subset(weekly, Year<2009)
-test <- subset(weekly, Year>2008)
-dim(train)
-```
-
-```{r}
-weekly.glm1 <- glm(Direction ~ Lag2 + Volume,
-                  data = train,
-                  family = binomial
-                  )
-summary(weekly.glm1)
-```
-
-We can use this model to compute a confusion matrix for the years 2009 & 2010:
-
-```{r}
-yhat1=predict(weekly.glm1,
-              test,
-              type="response")
-table(yhat1>=0.5,test$Direction)
-
-confusionMatrix(data=factor(yhat1>=0.5),reference=factor(test$Direction=="Up"),positive="TRUE")
-
-```
-
-### e
-
-Repeating part d with LDA
-```{r}
-weekly.lda2 <- lda(Direction ~ Lag2 + Volume,
-                  data = train
-                  )
-summary(weekly.lda2)
-```
-
-We can use this model to compute a confusion matrix for the years 2009 & 2010:
-
-```{r}
-yhat2=predict(weekly.lda2,
-              test,
-              type="response")
-# table(yhat2$posterior>=0.5,yhat2$class)
-
-# confusionMatrix(data=factor(yhat2$posterior>=0.5),reference=factor(yhat2$class=="Up"),positive="TRUE")
-
-```
-
-I wasn't able to get these confusion matrices to work.  Predict outputs a dataframe for the lda object, which I've had difficulty creating a confusion matrix from.
+Why do we want to use set.seed(1237) in #9 above?
 
 # Session Info
 
@@ -242,9 +65,4 @@ sessionInfo()
 
 # References
 
-1. Tarran B, Ghahramani Z. How machines learned to think statistically. Significance. 2015;12(1):8-15. doi:10.1111/j.1740-9713.2015.00796.x
-2. O’Neil C. Weapons of Math Destruction: How Big Data Increases Inequality and Threatens Democracy. Reprint edition. Crown; 2016.
-3. Olhede S, Wolfe P. When algorithms go wrong, who is liable? Significance. 2017;14(6):8-9. doi:10.1111/j.1740-9713.2017.01085.x
-4. Tarran B. Thinking statistically about online customer reviews. Significance. 2017;14(6):4-5. doi:10.1111/j.1740-9713.2017.01083.x
-5. James G, Witten D, Hastie T, Tibshirani R. An Introduction to Statistical Learning: With Applications in R. 1st ed. 2013, Corr. 7th printing 2017 edition. Springer; 2013.
-
+1. James G, Witten D, Hastie T, Tibshirani R. An Introduction to Statistical Learning: With Applications in R. 1st ed. 2013, Corr. 7th printing 2017 edition. Springer; 2013.
