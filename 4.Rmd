@@ -3,8 +3,6 @@ title: "Homework 4 - BSTA 522"
 author: "Matthew Hoctor"
 date: "1/25/2022"
 output:
-  pdf_document:
-    toc: yes
   html_document:
     number_sections: no
     theme: lumen
@@ -12,12 +10,14 @@ output:
     toc_float:
       collapsed: yes
       smooth_scroll: no
+  pdf_document:
+    toc: yes
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 # library(dplyr)
-library(readxl)
+# library(readxl)
 # library(tidyverse)
 # library(ggplot2)
 # library(CarletonStats)
@@ -34,11 +34,14 @@ library(readxl)
 # library(doBy)
 # library(geepack)
 # library(rje)
-# library(ISLR2)
+library(ISLR2)
 # library(psych)
 # library(MASS)
 # library(caret)  #required for confusionMatrix function
 # library(rje)
+# library(class)  #required for the knn function
+# library(e1071)  #required for the naiveBayes function
+library(boot)     #required for the boot function
 ```
 
 # Part C
@@ -47,15 +50,254 @@ Chap 5: #2, #9 (use B=1000 and set.seed(1237) in all questions)
 
 ## 5.2
 
+We will now derive the probability that a given observation is part of a bootstrap sample. Suppose that we obtain a bootstrap sample from a set of n observations.
 
+### a
+
+What is the probability that the first bootstrap observation is not the jth observation from the original sample? Justify your answer.
+
+By the law of total probability, we know that the probability that the jth observation is the first bootstrap observation and the probability that it is not the first bootstrap observation sum to one.  Any of the n observations have an equal probability of being the first bootstrap observation; therefore the probability that the first bootstrap observation is the jth observation from the original sample is $\frac{1}{n}$.  And therefore the probability that the first bootstrap observation is not the jth from the original sample is:
+
+$$1- \frac{1}{n} = \frac{n-1}{n}$$
+
+### b
+
+What is the probability that the second bootstrap observation is not the jth observation from the original sample?
+
+Bootstrap sampling is done with replacement.  Therefore the probability that the second bootstrap observation (and for any bootstrap observation) is not the jth from the original sample is equal to the probability that the first observation is not the jth from the original sample:
+
+$$\frac{n-1}{n}$$
+
+### c
+
+The probability that the jth observation is not in the bootstrap sample is the product of the probabilities that the jth observation is not selected during each sampling procedure.  If we assume that the bootstrap sample size is equal to the number of observations in the original sample (i.e. $B=n$), then the probability that the jth observation is not in the bootstrap sample can be given by:
+
+$$\mbox{P}[(x_j, y_j)\notin Z^*] = \prod_{i=1}^n \mbox{P}[(x_i^*, y_i^*) \neq (x_j, y_j)] = \prod_{i=1}^n (1- \frac{1}{n}) = (1- \frac{1}{n})^n$$
+
+Where $Z^*$ denotes the set of observations in the bootstrap sample,$(x_j, y_j)$ denotes the jth observation in the original sample, and $(x_i^*, y_i^*)$ denotes the ith observation in the bootstrap sample.
+
+### d
+
+When n = 5, what is the probability that the jth observation is in the bootstrap sample?
+
+We can compute this probability with the following code:
+
+```{r}
+n <-5
+(1 - 1/n)^n
+```
+
+### e
+
+When n = 100, what is the probability that the jth observation is in the bootstrap sample?
+
+We can compute this probability with the following code:
+
+```{r}
+n <-100
+(1 - 1/n)^n
+```
+
+### f
+
+When n = 10, 000, what is the probability that the jth observation is in the bootstrap sample?
+
+We can compute this probability with the following code:
+
+```{r}
+n <-10000
+(1 - 1/n)^n
+```
+
+### g
+
+Create a plot that displays, for each integer value of n from 1 to 100, 000, the probability that the jth observation is in the bootstrap sample. Comment on what you observe.
+
+```{r}
+n <- 1:10000
+probability <- rep (NA , 10000)
+for (i in n) {
+  probability[i] <- (1 - 1/i)^i
+}
+plot(n,probability)
+abline(h = exp(-1),
+       col = "red")
+```
+
+Observation: the probability quickly converges.
+
+### h
+
+We will now investigate numerically the probability that a bootstrap sample of size n = 100 contains the jth observation. Here j = 4. We repeatedly create bootstrap samples, and each time we record whether or not the fourth observation is contained in the bootstrap sample.
+
+```{r}
+store <- rep (NA , 10000)
+for (i in 1:10000) {
+store [i] <- sum ( sample (1:100 , rep = TRUE ) == 4) > 0
+}
+mean ( store )
+```
+
+This answer is very close to the analytical solution:
+
+```{r}
+1-probability[100]
+```
+
+Note that it can be shown analytically that:
+
+$$\lim_{n \rightarrow \infty} ( \frac{n-1}{n} )^n =e^{-1} \approx 0.3678794$$
+
+So our numerical solution (0.367861) is pretty close.
 
 ## 5.9
 
+### Setup
 
+Set seed:
+
+```{r}
+set.seed(1237)
+```
+
+Boston dataset:
+
+```{r}
+boston <- Boston
+```
+
+Set number of bootstrapping iterations:
+
+```{r}
+B <- 1000
+```
+
+Function:
+
+```{r}
+# Non-indexed standard error:
+std <- function(x) {sd(x)/sqrt(length(x))}
+
+# Indexed standard error:
+std2 <- function(x,i) {sd(x[i])/sqrt(length(x[i]))}
+
+# Indexed mean:
+mean2 <- function(x,i) {mean(x[i])}
+```
+
+### a
+
+We can estimate the average of the median home value of the 506 suburbs of Boston:
+
+```{r}
+mean(boston$medv)
+mean2(boston$medv, i = 1:length(boston$medv))
+```
+
+$\hat{\mu} = \$22,532.81$
+
+### b
+
+We can compute the standard error in the conventional way:
+
+```{r}
+std2(boston$medv, i = 1:length(boston$medv))
+std(boston$medv)
+```
+
+This tells us that the estimate of the mean will differ from the true population mean by $409, on average.
+
+### c
+
+We can estimate the standard error using the bootstrap:
+
+```{r}
+set.seed(1237)
+boot(boston$medv, 
+     statistic = std2, 
+     R = B)
+```
+
+Alternatte method:
+
+```{r}
+set.seed(1237)
+boot(boston$medv,
+     statistic = mean2,
+     R = B)
+```
+
+The bootstrapped standard error of the mean is 0.399, which is quite close to the analytical solution found in part b.
+
+### d
+
+A 95% CI for $\hat{\mu}$ can be calculated from the bootstrapped standard error:
+
+```{r}
+22.53281 + 1.96*0.3989197
+22.53281 - 1.96*0.3989197
+```
+
+Conventional 95% CI:
+
+```{r}
+t.test(boston$medv)
+```
+
+The bootstrapped 95% CI is $(21.75, 23.31)$, whereas the analytical 95% CI is $(21.73, 23.34)$; these are quite close.
+
+### e
+
+Median value of the suburb median value, $\hat{\mu}_{med}$:
+
+```{r}
+median(boston$medv)
+```
+
+### f
+
+We can bootstrap the standard error of $\hat{\mu}_{med}$, however we cannot find it analytically:
+
+```{r}
+set.seed(1237)
+median2 <- function(x,i) {median(x[i])}
+boot(boston$medv,
+     statistic = median2,
+     R = B)
+```
+
+The standard error of $\hat{\mu}_{med}$ is 0.370; this is a similar amount to the standard error of $\hat{\mu}$.
+
+### g
+
+We can estimate the tenth percentile of the median home value, $\hat{\mu}_{0.10}$, with the following code:
+
+```{r}
+quantile(boston$medv,
+         probs = c(0.10))
+```
+
+The tenth percentile of median home value is $12,750.00.
+
+### h
+
+We can use the bootstrap to to estimate the standard error of $\hat{\mu}_{0.10}$:
+
+```{r}
+set.seed(1237)
+quantile2 <- function(x,i) {quantile(x[i], probs = c(0.10))}
+boot(boston$medv,
+     statistic = quantile2,
+     R = B)
+```
+
+We find that the bootstrapped standard error of $\hat{\mu}_{0.10}$ is 0.493.  Interestingly, this is not too much more variable than the mean and median values; however relatively speaking the standard error is greater.
 
 # Part D
 
 Why do we want to use set.seed(1237) in #9 above?
+
+Setting a particular seed is important because it ensures reproducibility of work requiring the use of random number generation.  If the seed is not specified, the state of .Random.seed will dictate which random numbers are generated subsequently, and output will be different each time the code is run.
 
 # Session Info
 

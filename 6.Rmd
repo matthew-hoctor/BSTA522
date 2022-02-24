@@ -1,0 +1,488 @@
+---
+title: "Homework 6 - BSTA 522"
+author: "Matthew Hoctor"
+date: "2/13/2022"
+output:
+  html_document:
+    number_sections: no
+    theme: lumen
+    toc: yes
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+  pdf_document:
+    toc: yes
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# library(dplyr)
+# library(readxl)
+# library(tidyverse)
+library(ggplot2)
+# library(CarletonStats)
+# library(pwr)
+# library(BSDA)
+# library(exact2x2)
+# library(car)
+# library(dvmisc)
+# library(emmeans)
+# library(gridExtra)
+# library(DescTools)
+# library(DiagrammeR)
+# library(nlme)
+# library(doBy)
+# library(geepack)
+# library(rje)
+library(ISLR2)
+# library(psych)
+# library(MASS)
+# library(caret)      #for confusionMatrix function
+# library(rje)
+# library(class)      #for knn function
+# library(e1071)      #for naiveBayes function
+# library(boot)       #for boot function
+# library(covTest)      #for covTest function
+# library(leaps)        #for regsubsets function for best subset selection
+# library(broom)
+# library(glmnet)       #for glmnet() for shrinkage methods
+# library(doParallel)   #for parallel computing in glmnet(); does not work
+# library(pls)          #for pcr function
+library(qpcR)         #for RSS function
+library(splines)      #for bs() function for basis function of regression splines
+library(quantreg)     #for quantreg() for quantile regression
+```
+
+# Part B
+
+Read paper 6b and report up to 5 bullet points.  (Read the CQR model and its advantage, not technical details.)
+
+ * Unlike accelerated failure time (AFT) models, censored quantile regression (CQR) models do not require the assumption of a homogenious treatment effect (i.e. the assumption that patients of differing risks for the outcome in question are affected equally by the treatment).
+ * CQR coefficients have the same interpretation as AFT model coefficients; i.e. the model coefficients reflect the effect of each covariate on the $\tau$th quantile, where $\tau$ is the CDF of of the probability distribution of events over time.
+ * CQR provides more information than Cox models because it provides probability distributions for time-to-event for populations or individuals.
+ * Caveat: CQR can be confusing for those only familiar with Cox models, and SAS & R statistical packages do not have standard functions for 'second-stage inferences' (e.g. testing for constant coefficients over different quantiles); although the authors provide some R software on their website.
+ * Downside: currently the performance of the model is qualitatively evaluated by visually inspecting differences in estimated survival probability and expected survival probability.  Development of a formal test is the next step in their research.
+
+# Part C
+
+Chap 7: #2,  #9. (Hint for #2: assume the total (RSS + penalty) is a finite value, then think about the penalty term.)
+
+## 7.2
+
+### a
+
+If we assume $\lambda \rightarrow \infty$ and $m = 0$, then we are placing an infinite penalty on the squared value of the $g(x)$, the function itself (i.e.the 0th derivative); thus no matter what the RSS term for $g(x)$ may be, $g(x) = 0$ in this case.  This is the only scenario where the formula takes on a finite value for $\lambda \rightarrow \infty$ and $m = 0$, and is therefore the minimum.
+
+### b
+
+If we assume $\lambda \rightarrow \infty$ and $m = 1$, then we are placing an infinite penalty on the squared value of $g'(x)$, the slope of the function (i.e.the 1st derivative); thus the the slope must equal 0, and therefore $g(x) = c$ in this case.  If we are to pick $c$ such that RSS is minimized we find that $g(x) = \hat{\beta_0}$, the estimated mean.
+
+### c
+
+If we assume $\lambda \rightarrow \infty$ and $m = 2$, then we are placing an infinite penalty on the squared value of $g''(x)$, the curvature of the function (i.e.the 2nd derivative); thus the the curvature must equal 0, and therefore $g(x) = \hat{\beta_1} \times x + \hat{\beta_0}$ in this case.  If we pick parameters such that RSS is minimized we find that:
+
+$$\hat{\beta_1} = \frac{\sum_{i=1}^n (x_i - \bar{x})(y_i - \bar{y})}{\sum_{i=1}^n (x_i - \bar{x})^2}$$
+
+$$\hat{\beta_0} = \bar{y} - \hat{\beta_1} \bar{x}$$
+
+### d
+
+If we assume $\lambda \rightarrow \infty$ and $m = 3$, then we are placing an infinite penalty on the squared value of $g'''(x)$, the rate of change ofcurvature of the function (i.e.the 3rd derivative); thus the rate of change of the curvature must equal 0, and therefore $g(x) = \hat{\beta_0} + \hat{\beta_1} \times x + \hat{\beta_2} \times x^2$ in this case.
+
+### e
+
+If we assume $\lambda \rightarrow 0$ and $m = 3$, then we are placing an no penalty on the squared value of $g'''(x)$, the rate of change of curvature of the function (i.e.the 3rd derivative); thus $g(x)$ is completely unrestrained and may take on any form.  Since $g(x)$ can have infinite flexibility the RSS term may be minimized to zero with an arbitrarily flexible function; e.g. if each $x_i$ is a unique value then RSS can be minimized to zero when $g(x)$ takes the form of a polynomial with degree equal to $n$.
+
+## 7.9
+
+This question uses the variables dis (the weighted mean of distances
+to five Boston employment centers) and nox (nitrogen oxides concentration in parts per 10 million) from the Boston data. We will treat
+dis as the predictor and nox as the response.
+
+### Setup
+
+Dataset specification
+
+```{r}
+boston <- Boston
+```
+
+### a
+
+Use the poly() function to fit a cubic polynomial regression to
+predict nox using dis. Report the regression output, and plot
+the resulting data and polynomial fits.
+
+```{r}
+boston.fit0 <- lm(nox ~ poly(dis, 3),
+                  data = boston)
+summary(boston.fit0)
+```
+
+We can use visualize this fit with the following plot:
+
+```{r}
+ggplot(boston, 
+       aes(x = dis, y = nox)) + 
+          geom_point() +
+          stat_smooth(method='lm', formula = y ~ poly(x,3), size = 1) + 
+          xlab('weighted mean of distances to five Boston employment centres') +
+          ylab('nitrogen oxides concentration (parts per 10 million)')
+```
+
+### b
+
+Plot the polynomial fits for a range of different polynomial
+degrees (say, from 1 to 10), and report the associated residual
+sum of squares.
+
+```{r}
+ggplot(boston, 
+       aes(x = dis, y = nox)) + 
+          geom_point() +
+          stat_smooth(method='lm', formula = y ~ poly(x,1), size = 1, colour = "#be149a") +
+          stat_smooth(method='lm', formula = y ~ poly(x,2), size = 1, colour = "#330f09") +
+          stat_smooth(method='lm', formula = y ~ poly(x,3), size = 1, colour = "#092d33") + 
+          stat_smooth(method='lm', formula = y ~ poly(x,4), size = 1, colour = "#9abe14") +
+          stat_smooth(method='lm', formula = y ~ poly(x,5), size = 1, colour = "#f9877f") +
+          stat_smooth(method='lm', formula = y ~ poly(x,6), size = 1, colour = "#c808f9") +
+          stat_smooth(method='lm', formula = y ~ poly(x,7), size = 1, colour = "#8ee5ee") +
+          stat_smooth(method='lm', formula = y ~ poly(x,8), size = 1, colour = "#ab2c49") +
+          stat_smooth(method='lm', formula = y ~ poly(x,9), size = 1, colour = "#732a68") +
+          stat_smooth(method='lm', formula = y ~ poly(x,10), size = 1, colour = "#12b7b0") +
+          xlab('weighted mean of distances to five Boston employment centres') +
+          ylab('nitrogen oxides concentration (parts per 10 million)')
+
+ggplot(boston, 
+       aes(x = dis, y = nox)) + 
+          geom_point() +
+          stat_smooth(method='lm', formula = y ~ poly(x,1), size = 1, colour = "#be149a") +
+          xlab('weighted mean of distances to five Boston employment centres') +
+          ylab('nitrogen oxides concentration (parts per 10 million)')
+
+ggplot(boston, 
+       aes(x = dis, y = nox)) + 
+          geom_point() +
+          stat_smooth(method='lm', formula = y ~ poly(x,2), size = 1, colour = "#330f09") +
+          xlab('weighted mean of distances to five Boston employment centres') +
+          ylab('nitrogen oxides concentration (parts per 10 million)')
+
+ggplot(boston, 
+       aes(x = dis, y = nox)) + 
+          geom_point() +
+          stat_smooth(method='lm', formula = y ~ poly(x,3), size = 1, colour = "#092d33") + 
+          xlab('weighted mean of distances to five Boston employment centres') +
+          ylab('nitrogen oxides concentration (parts per 10 million)')
+
+ggplot(boston, 
+       aes(x = dis, y = nox)) + 
+          geom_point() +
+          stat_smooth(method='lm', formula = y ~ poly(x,4), size = 1, colour = "#9abe14") +
+          xlab('weighted mean of distances to five Boston employment centres') +
+          ylab('nitrogen oxides concentration (parts per 10 million)')
+
+ggplot(boston, 
+       aes(x = dis, y = nox)) + 
+          geom_point() +
+          stat_smooth(method='lm', formula = y ~ poly(x,5), size = 1, colour = "#f9877f") +
+          xlab('weighted mean of distances to five Boston employment centres') +
+          ylab('nitrogen oxides concentration (parts per 10 million)')
+
+ggplot(boston, 
+       aes(x = dis, y = nox)) + 
+          geom_point() +
+          stat_smooth(method='lm', formula = y ~ poly(x,6), size = 1, colour = "#c808f9") +
+          xlab('weighted mean of distances to five Boston employment centres') +
+          ylab('nitrogen oxides concentration (parts per 10 million)')
+
+ggplot(boston, 
+       aes(x = dis, y = nox)) + 
+          geom_point() +
+          stat_smooth(method='lm', formula = y ~ poly(x,7), size = 1, colour = "#8ee5ee") +
+          xlab('weighted mean of distances to five Boston employment centres') +
+          ylab('nitrogen oxides concentration (parts per 10 million)')
+
+ggplot(boston, 
+       aes(x = dis, y = nox)) + 
+          geom_point() +
+          stat_smooth(method='lm', formula = y ~ poly(x,8), size = 1, colour = "#ab2c49") +
+          xlab('weighted mean of distances to five Boston employment centres') +
+          ylab('nitrogen oxides concentration (parts per 10 million)')
+
+ggplot(boston, 
+       aes(x = dis, y = nox)) + 
+          geom_point() +
+          stat_smooth(method='lm', formula = y ~ poly(x,9), size = 1, colour = "#732a68") +
+          xlab('weighted mean of distances to five Boston employment centres') +
+          ylab('nitrogen oxides concentration (parts per 10 million)')
+
+ggplot(boston, 
+       aes(x = dis, y = nox)) + 
+          geom_point() +
+          stat_smooth(method='lm', formula = y ~ poly(x,10), size = 1, colour = "#12b7b0") +
+          xlab('weighted mean of distances to five Boston employment centres') +
+          ylab('nitrogen oxides concentration (parts per 10 million)')
+
+```
+
+We can now calculate the RSS for these models:
+
+```{r}
+for (i in 1:10) {
+  print(paste0("RSS for polynomial of degree ",i,":"))
+  print(RSS((lm(nox ~ poly(dis, i), data = boston))))
+}
+```
+
+### c
+
+Perform cross-validation or another approach to select the optimal degree for the polynomial, and explain your results.
+
+This code is adapted from Gavin Simpson's code:
+
+```{r}
+k <- 10
+
+#Create a vector of length 506 with values from 1-10 denoting which fold that observation is part of:
+fold <- sample(k, nrow(boston), replace = TRUE)
+
+#For each span from 1 to 10 we can calculate the cross-validated test error:
+mse <- numeric(k)
+span <- seq(1, 10, by = 1)
+cv <- numeric(length(span))
+
+for (j in seq_along(span))
+{
+  for (i in seq_len(k))
+  {
+    take <- fold == i
+    foldi <- boston[take, ]
+    foldOther <- boston[!take, ]
+#   f <- loess(nox ~ dis, data=foldOther, span=span[j])
+    f <- lm(nox ~ poly(dis, j), data = foldOther)
+    pred <- predict(f, foldi)
+    mse[i] <- mean((pred - foldi$dis)^2, na.rm = TRUE)
+  }
+  cv[j]<- mean(mse)
+}
+
+plot(span, cv)
+```
+
+Cross validation suggests that average test set MSE is similar for each degree of the polynomial, with odd values performing better, and polynomials of degree 7 and 9 minimizing average test set MSE, and thus performing best.
+
+### d
+
+Use the bs() function to fit a regression spline to predict nox
+using dis. Report the output for the fit using four degrees of
+freedom. How did you choose the knots? Plot the resulting fit.
+
+```{r}
+boston.bs0 <- lm(nox ~ bs(dis, df = 4), data = boston)
+dislims <- range(boston$dis)
+dis.grid <- seq(from = dislims[1], to = dislims[2])
+pred <- predict(boston.bs0 , newdata = list(dis = dis.grid), se = T)
+plot (boston$dis, boston$nox, col = " gray ")
+lines(dis.grid, pred$fit , lwd = 2)
+lines(dis.grid, pred$fit + 2*pred$se, lty = "dashed")
+lines(dis.grid, pred$fit - 2*pred$se, lty = "dashed")
+```
+
+Because we specified four degrees of freedom, and a cubic spline with K knots will have 4+K degrees of freedom, we therefore have zero knots; i.e. we just have a cubic polynomial, as can be seen above.
+
+### e
+
+Now fit a regression spline for a range of degrees of freedom, and
+plot the resulting fits and report the resulting RSS. Describe the
+results obtained.
+
+```{r}
+for (i in 4:20) {
+  print(paste0("RSS for spline of degree ",i,":"))
+  print(RSS((lm(nox ~ bs(dis, df = i), data = boston))))
+}
+```
+
+```{r}
+ggplot(boston, 
+       aes(x = dis, y = nox)) + 
+          geom_point() +
+          stat_smooth(method='lm', formula = y ~ bs(x, df = 4), size = 1, colour = "#be149a") +
+          xlab('weighted mean of distances to five Boston employment centres') +
+          ylab('nitrogen oxides concentration (parts per 10 million)') +
+          ggtitle('Regression Spline with 4 Degrees of freedom')
+ggplot(boston, 
+       aes(x = dis, y = nox)) + 
+          geom_point() +
+          stat_smooth(method='lm', formula = y ~ bs(x, df = 5), size = 1, colour = "#be149a") +
+          xlab('weighted mean of distances to five Boston employment centres') +
+          ylab('nitrogen oxides concentration (parts per 10 million)') +
+          ggtitle('Regression Spline with 5 Degrees of freedom')
+ggplot(boston, 
+       aes(x = dis, y = nox)) + 
+          geom_point() +
+          stat_smooth(method='lm', formula = y ~ bs(x, df = 6), size = 1, colour = "#be169a") +
+          xlab('weighted mean of distances to five Boston employment centres') +
+          ylab('nitrogen oxides concentration (parts per 10 million)') +
+          ggtitle('Regression Spline with 6 Degrees of freedom')
+ggplot(boston, 
+       aes(x = dis, y = nox)) + 
+          geom_point() +
+          stat_smooth(method='lm', formula = y ~ bs(x, df = 7), size = 1, colour = "#be179a") +
+          xlab('weighted mean of distances to five Boston employment centres') +
+          ylab('nitrogen oxides concentration (parts per 10 million)') +
+          ggtitle('Regression Spline with 7 Degrees of freedom')
+ggplot(boston, 
+       aes(x = dis, y = nox)) + 
+          geom_point() +
+          stat_smooth(method='lm', formula = y ~ bs(x, df = 8), size = 1, colour = "#be189a") +
+          xlab('weighted mean of distances to five Boston employment centres') +
+          ylab('nitrogen oxides concentration (parts per 10 million)') +
+          ggtitle('Regression Spline with 8 Degrees of freedom')
+ggplot(boston, 
+       aes(x = dis, y = nox)) + 
+          geom_point() +
+          stat_smooth(method='lm', formula = y ~ bs(x, df = 9), size = 1, colour = "#be199a") +
+          xlab('weighted mean of distances to five Boston employment centres') +
+          ylab('nitrogen oxides concentration (parts per 10 million)') +
+          ggtitle('Regression Spline with 9 Degrees of freedom')
+ggplot(boston, 
+       aes(x = dis, y = nox)) + 
+          geom_point() +
+          stat_smooth(method='lm', formula = y ~ bs(x, df = 10), size = 1, colour = "#be149a") +
+          xlab('weighted mean of distances to five Boston employment centres') +
+          ylab('nitrogen oxides concentration (parts per 10 million)') +
+          ggtitle('Regression Spline with 10 Degrees of freedom')
+ggplot(boston, 
+       aes(x = dis, y = nox)) + 
+          geom_point() +
+          stat_smooth(method='lm', formula = y ~ bs(x, df = 11), size = 1, colour = "#be149a") +
+          xlab('weighted mean of distances to five Boston employment centres') +
+          ylab('nitrogen oxides concentration (parts per 10 million)') +
+          ggtitle('Regression Spline with 11 Degrees of freedom')
+ggplot(boston, 
+       aes(x = dis, y = nox)) + 
+          geom_point() +
+          stat_smooth(method='lm', formula = y ~ bs(x, df = 12), size = 1, colour = "#be149a") +
+          xlab('weighted mean of distances to five Boston employment centres') +
+          ylab('nitrogen oxides concentration (parts per 10 million)') +
+          ggtitle('Regression Spline with 12 Degrees of freedom')
+ggplot(boston, 
+       aes(x = dis, y = nox)) + 
+          geom_point() +
+          stat_smooth(method='lm', formula = y ~ bs(x, df = 13), size = 1, colour = "#be149a") +
+          xlab('weighted mean of distances to five Boston employment centres') +
+          ylab('nitrogen oxides concentration (parts per 10 million)') +
+          ggtitle('Regression Spline with 13 Degrees of freedom')
+```
+
+Beyond 5 degrees of freedom the splines look quite similar, and have similar RSS values.
+
+### f
+
+Perform cross-validation or another approach in order to select
+the best degrees of freedom for a regression spline on this data.
+Describe your results.
+
+We can again borrow and adapt the cross validation code from Gavin Simpson:
+
+```{r}
+k <- 10
+
+#Create a vector of length 506 with values from 1-10 denoting which fold that observation is part of:
+fold <- sample(k, nrow(boston), replace = TRUE)
+
+#For each DOF from 4 to 20 we can calculate the cross-validated test error:
+mse <- numeric(k)
+DOF <- seq(4, 20, by = 1)
+cv <- numeric(length(DOF))
+
+for (j in seq_along(DOF))
+{
+  for (i in seq_len(k))
+  {
+    take <- fold == i
+    foldi <- boston[take, ]
+    foldOther <- boston[!take, ]
+#   f <- loess(nox ~ dis, data=foldOther, span=span[j])
+    f <- lm(nox ~ bs(dis, df = j), data = foldOther)
+    pred <- predict(f, foldi)
+    mse[i] <- mean((pred - foldi$dis)^2, na.rm = TRUE)
+  }
+  cv[j]<- mean(mse)
+}
+
+plot(DOF, cv)
+```
+
+We can see that cross-validated average test MSE values are similar along the range from 4 to 20 degrees of freedom; however a local minimum CV is reached at 13 degrees of freedom.
+
+# Part D
+
+QR exercise
+ * Reproduce Fig 7.10.
+ * quantile regression of a quadratic function  for tau = 0.10, 0.50, 0.90.
+ * Add the fitted quantile regression lines to the plot.
+
+## Data
+
+```{r}
+wage <- Wage
+```
+
+## Figure 7.10
+
+Unfortunately I could not get both local linear regressions onto the same ggplot:
+
+```{r}
+ggplot(wage, 
+       aes(x = age, y = wage)) + 
+          geom_point(shape = 1) +
+          # stat_smooth(method=stats::loess, formula = y ~ x, size = 1, span = 0.7, color = 'blue', se = FALSE) + 
+          stat_smooth(method=stats::loess, formula = y ~ x, size = 1, span = 0.2, color = 'red', se = FALSE) +
+          xlab('age') +
+          ylab('wage')
+
+ggplot(wage, 
+       aes(x = age, y = wage)) + 
+          geom_point(shape = 1) +
+          stat_smooth(method=stats::loess, formula = y ~ x, size = 1, span = 0.7, color = 'blue', se = FALSE) +
+          # stat_smooth(method=stats::loess, formula = y ~ x, size = 1, span = 0.2, color = 'red', se = FALSE) +
+          xlab('age') +
+          ylab('wage')
+```
+
+## Quantile regression
+
+```{r}
+wage.rq0 = rq(wage ~ age, 
+    tau = c(0.10, 0.5,0.90),
+    data = wage,
+    na.action = na.omit,
+    model = TRUE)
+summary(wage.rq0)
+summary(wage.rq0, se="boot")
+plot(wage.rq0)
+```
+
+It is unclear how to plot this overtop of a ggplot, so here is a conventional plot of the quantile regression; also this did not knit properly, but provided a graphic when run in rstudio:
+
+```{r}
+plot(c(18,80),c(0,350),type="n", xlab="Age",ylab="Wage")
+points(wage$age,wage$wage,col="black")
+for(i in c(1,2,3))lines(wage.rq0$x[18:80,2],wage.rq0$fit[18:80,i],col="blue",lty=2)
+# lines(m1.s1$x[1:16,2],m1.s1$fit[1:16,3],col="blue",lwd=2)
+```
+
+    
+# Session Info
+
+```{r}
+sessionInfo()
+```
+
+# References
+
+1. Xue X, Xie X, Strickler HD. A censored quantile regression approach for the analysis of time to event data. Stat Methods Med Res. 2018;27(3):955-965. doi:10.1177/0962280216648724
+2. James G, Witten D, Hastie T, Tibshirani R. An Introduction to Statistical Learning: With Applications in R. 1st ed. 2013, Corr. 7th printing 2017 edition. Springer; 2013.

@@ -3,6 +3,8 @@ title: "Homework 3 - BSTA 522"
 author: "Matthew Hoctor"
 date: "1/21/2022"
 output:
+  pdf_document:
+    toc: yes
   html_document:
     number_sections: no
     theme: lumen
@@ -10,8 +12,6 @@ output:
     toc_float:
       collapsed: yes
       smooth_scroll: no
-  pdf_document:
-    toc: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -68,11 +68,11 @@ library(e1071)  #required for the naiveBayes function
 
 We are given:
 
-$$\mathbb{logit}[\hat{P}(Y = 1|X)] = \hat{\beta_0} + \hat{\beta_1} X_1 + \hat{\beta_2} X_2$$
+$$\mbox{logit}[\hat{P}(Y = 1|X)] = \hat{\beta_0} + \hat{\beta_1} X_1 + \hat{\beta_2} X_2$$
 
 Where the logit function is the natural log of the odds.  Expit is the inverse function of logit, therefore:
 
-$$\hat{P}(Y = 1|X) = \mathbb{expit}[\hat{\beta_0} + \hat{\beta_1} X_1 + \hat{\beta_2} X_2]$$
+$$\hat{P}(Y = 1|X) = \mbox{expit}[\hat{\beta_0} + \hat{\beta_1} X_1 + \hat{\beta_2} X_2]$$
 
 With the given values of $\hat{\beta_i}$, we can evaluate the probability of a student who studies for 40 h and had an undergraduate GPA of 3.5 getting an A in the class:
 
@@ -86,9 +86,9 @@ If we are given that the student's undergraduate GPA remains 3.5 ($X_2 = 3.5$), 
 
 $$
 \begin{split}
-0.50 &=  \mathbb{expit}[\hat{\beta_0} + \hat{\beta_1} X_1 + \hat{\beta_2} X_2]\\
-\mathbb{logit}[0.50] &=  \hat{\beta_0} + \hat{\beta_1} X_1 + \hat{\beta_2} X_2\\
-X_1 &= \frac{\mathbb{logit}[0.50] - \hat{\beta_0} - \hat{\beta_2} X_2}{\hat{\beta_1}}
+0.50 &=  \mbox{expit}[\hat{\beta_0} + \hat{\beta_1} X_1 + \hat{\beta_2} X_2]\\
+\mbox{logit}[0.50] &=  \hat{\beta_0} + \hat{\beta_1} X_1 + \hat{\beta_2} X_2\\
+X_1 &= \frac{\mbox{logit}[0.50] - \hat{\beta_0} - \hat{\beta_2} X_2}{\hat{\beta_1}}
 \end{split}
 $$
 

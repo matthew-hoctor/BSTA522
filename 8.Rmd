@@ -1,0 +1,77 @@
+---
+title: "Homework 8 - BSTA 522"
+author: "Matthew Hoctor"
+date: "2/22/2022"
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: 3
+  html_document:
+    number_sections: no
+    theme: lumen
+    toc: yes
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# library(dplyr)
+# library(readxl)
+# library(tidyverse)
+library(ggplot2)
+# library(CarletonStats)
+# library(pwr)
+# library(BSDA)
+# library(exact2x2)
+# library(car)
+# library(dvmisc)
+# library(emmeans)
+# library(gridExtra)
+# library(DescTools)
+# library(DiagrammeR)   #for plotting trees
+# library(nlme)
+# library(doBy)
+# library(geepack)
+# library(rje)
+library(ISLR2)
+# library(psych)
+# library(MASS)
+# library(caret)      #for confusionMatrix function
+# library(rje)
+# library(class)      #for knn function
+library(e1071)      #for naiveBayes function & SVM svm() funcion
+# library(boot)       #for boot function
+# library(covTest)      #for covTest function
+# library(leaps)        #for regsubsets function for best subset selection
+# library(broom)
+# library(glmnet)       #for glmnet() for shrinkage methods
+# library(doParallel)   #for parallel computing in glmnet(); does not work
+# library(pls)          #for pcr function
+# library(qpcR)         #for RSS function
+# library(splines)      #for bs() function for basis function of regression splines
+# library(quantreg)     #for quantreg() for quantile regression
+# library(tree)           #older package for tree regression
+# library(rpart)          #more maintained package for tree regression
+# library(rattle)         #for visually appealing tree plotting
+# library(randomForest)   #for random forest technique
+# library(party)          #?cforest function for plotting random forests?
+# library(xgboost)
+library(LiblineaR)
+library(svm)
+```
+
+# Part B: Question 9.N
+
+
+    
+# Session Info
+
+```{r}
+sessionInfo()
+```
+
+# References
+
+1. James G, Witten D, Hastie T, Tibshirani R. An Introduction to Statistical Learning: With Applications in R. 1st ed. 2013, Corr. 7th printing 2017 edition. Springer; 2013.

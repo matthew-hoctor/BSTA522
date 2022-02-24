@@ -1,0 +1,528 @@
+---
+title: "Homework 5 - BSTA 522"
+author: "Matthew Hoctor"
+date: "2/7/2022"
+output:
+  html_document:
+    number_sections: no
+    theme: lumen
+    toc: yes
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+  pdf_document:
+    toc: yes
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# library(dplyr)
+# library(readxl)
+# library(tidyverse)
+# library(ggplot2)
+# library(CarletonStats)
+# library(pwr)
+# library(BSDA)
+# library(exact2x2)
+# library(car)
+# library(dvmisc)
+# library(emmeans)
+# library(gridExtra)
+# library(DescTools)
+# library(DiagrammeR)
+# library(nlme)
+# library(doBy)
+# library(geepack)
+# library(rje)
+library(ISLR2)
+# library(psych)
+# library(MASS)
+# library(caret)      #for confusionMatrix function
+# library(rje)
+# library(class)      #for knn function
+# library(e1071)      #for naiveBayes function
+# library(boot)       #for boot function
+library(covTest)      #for covTest function
+library(leaps)        #for regsubsets function for best subset selection
+library(broom)
+library(glmnet)       #for glmnet() for shrinkage methods
+library(doParallel)   #for parallel computing in glmnet(); does not work
+library(pls)          #for pcr function
+```
+
+# Part 2
+
+Read paper 5a and report (up to 5 bullet points). It is a long paper. You may just read the main paper and skip the comments and rejoinder.  But, you may be interested in reading them when you have more time, like during the spring break.
+
+## Breiman Summary
+
+ * Breiman's main thesis is that statisticians tend to think of analysis of data in two different ways: response variables can be a function of predictors, and models can be made to get closer to knowledge of how the natural world computes the response; alternatively algorithms generate outputs from inputs.  Furthermore Breiman argues that the former way of thinking has resulted in decreased applicability of the field of statistics to other ventures.
+ * Breiman outlines current issues in the data modeling approach; these include poor approximation of the statistical model for the natural model, lack of use of goodness-of-fit tests, the consistency of datasets with multitudes of data models, and poor predictive accuracy due to lack of validation approaches.
+ * Breiman presents algorithmic models as an alternative.  He states that primary examples of this approach include nural networks and decision trees.  
+ * Several examples illustrating the potential benefits of these methods are given; examples include high dimensional data such as survival data, clustered medical data, genetic data, and random forests. 
+
+# Part 3
+
+Chap 6: #2,  #11; Always set a seed number for reproducibility.
+
+## 6.2
+
+### a
+
+The lasso, relative to least squares, is:
+
+Less flexible and hence will give improved prediction accuracy when its increase in bias is less than its decrease in variance.  Lasso technique is a shrinkage method, and therefore it has the effect of reducing variance, at the expense of increasing compared to least squares.  The lasso technique is less flexible because the sum of the absolute values of the parameters (except for the intercept) is constrained.
+
+### b
+
+Ridge regression relative to least squares, is:
+
+Less flexible and hence will give improved prediction accuracy when its increase in bias is less than its decrease in variance.  Similar to the lasso, ridge regression is a shrinkage method, and therefore it has the effect of reducing variance at the expense of increasing bias, when compared to least squares.  Ridge regression is less flexible than least squares because the sum of the squares of the parameters (except for the intercept) is constrained.
+
+### c
+
+Non-linear methods relative to least squares, is:
+
+More flexible and hence will give improved prediction accuracy when its increase in variance is less than its decrease in bias.  Non-linear methods increase the number of parameters used to describe the relation of the variable to the response variable, and therefore are more flexible.  This can decrease bias at the expense of an increase in variance.
+
+## 6.11
+
+We will now try to predict per capita crime rate in the Boston data set.
+
+### Setup
+
+Dataset specification
+
+```{r}
+boston <- Boston
+```
+
+Adding the predict() function for objects output from regsubsets() from the text:
+
+```{r}
+predict.regsubsets=function(object,newdata,id,...){
+  form=as.formula(object$call[[2]])
+  mat=model.matrix(form,newdata)
+  coefi=coef(object,id=id)
+  xvars=names(coefi)
+  mat[,xvars]%*%coefi   # NB %*% is matrix cross-product
+  }
+```
+
+### a
+
+Try out some of the regression methods explored in this chapter, such as best subset selection, the lasso, ridge regression, and PCR. Present and discuss results for the approaches that you consider.
+
+Note: in 11(a), try all models listed, not some, and elastic net.
+
+#### Best Subset Selection
+
+Exhaustive search
+
+```{r}
+regfit.ex <- regsubsets(crim ~ .,
+                            data = boston,
+                            method = "exhaustive",
+                            nvmax = 13  #specifies max model size
+                            )
+regfit.ex.sum <- summary(regfit.ex)
+regfit.ex.sum
+tidy(regfit.ex)
+```
+
+We can plot the regfits() output with with plot.regsubsets:
+
+```{r}
+plot(regfit.ex,
+     scale = "r2")
+plot(regfit.ex,
+     scale = "adjr2")
+plot(regfit.ex,
+     scale = "Cp")
+plot(regfit.ex,
+     scale = "bic")
+```
+
+The output of the top line shows which variables are included in the optimal model, according to the criteria on the y-axis; $R^2$, as expected, selects all variables; adjusted $R^2$ selects all variables but Charles river proximity, home age, and property tax rate; Cp (AIC) selects all but industrial proportion, Charles river proximity, number of rooms, home age, and tax rate; and BIC selects only the intercept, highway accesability, and socioeconomic status.  We can view the coefficient estimates associated with the optimal BIC value with the coef() function:
+
+```{r}
+coef(regfit.ex, 2)
+```
+
+We can repeat the above analysis for the forward search method:
+
+```{r}
+regfit.fwd <- regsubsets(crim ~ .,
+                            data = boston,
+                            method = "forward",
+                            nvmax = 13  #specifies max model size
+                            )
+regfit.fwd.sum <- summary(regfit.fwd)
+regfit.fwd.sum
+tidy(regfit.fwd)
+```
+
+We can plot the regfits() output with with plot.regsubsets:
+
+```{r}
+plot(regfit.fwd,
+     scale = "r2")
+plot(regfit.fwd,
+     scale = "adjr2")
+plot(regfit.fwd,
+     scale = "Cp")
+plot(regfit.fwd,
+     scale = "bic")
+```
+
+The output of the top line shows which variables are included in the optimal model, according to the criteria on the y-axis; $R^2$, as expected, selects all variables; adjusted $R^2$ selects all variables but Charles river proximity, home age, property tax rate, and number of rooms; Cp (AIC) selects all but industrial proportion, Charles river proximity, number of rooms, home age, and tax rate; and BIC selects only the intercept, highway accesability, socioeconomic status, and black race.  We can view the coefficient estimates associated with the optimal BIC value with the coef() function:
+
+```{r}
+coef(regfit.fwd, 3)
+```
+
+We can repeat the above analysis for the backward search method:
+
+```{r}
+regfit.bwd <- regsubsets(crim ~ .,
+                            data = boston,
+                            method = "backward",
+                            nvmax = 13  #specifies max model size
+                            )
+regfit.bwd.sum <- summary(regfit.bwd)
+regfit.bwd.sum
+tidy(regfit.bwd)
+```
+
+We can plot the regfits() output with with plot.regsubsets:
+
+```{r}
+plot(regfit.bwd,
+     scale = "r2")
+plot(regfit.bwd,
+     scale = "adjr2")
+plot(regfit.bwd,
+     scale = "Cp")
+plot(regfit.bwd,
+     scale = "bic")
+```
+
+The output of the top line shows which variables are included in the optimal model, according to the criteria on the y-axis; $R^2$, as expected, selects all variables; adjusted $R^2$ selects all variables but Charles river proximity, home age, property tax rate, and number of rooms; Cp (AIC) selects all but industrial proportion, Charles river proximity, number of rooms, home age, and tax rate; and BIC selects only the intercept, industrial zoning, distance from employment, highway accesibility, and median home value.  We can view the coefficient estimates associated with the optimal BIC value with the coef() function:
+
+```{r}
+coef(regfit.bwd, 4)
+```
+
+#### Lasso
+
+This code specifies model matricies as x values, and crime rate vector as y values for the shrinkage methods:
+
+```{r}
+x <- model.matrix(crim ~ .,
+                  data = boston)
+y <- boston$crim
+```
+
+As in the example in the text, we will choose a range of $\lambda$ values from $10^{-2}$ to $10^{10}$, and fit models for this range of parameters:
+
+```{r}
+grid <- 10^seq(10, -2, length = 100)  #specifies 100 lambda values
+```
+
+The following code creates the lasso model and plots the coefficients as a function of log-$\lambda$:
+
+```{r}
+lasso.model <- glmnet(x,
+                      y,
+                      alpha = 1,      #specifies lasso
+                      lambda = grid)
+plot(lasso.model,
+     xvar = "lambda",
+     main = "Lasso")
+```
+
+We will revisit the models created in part a for evaluation using the validation set approach.  Note that the above code chunk did not take a significant amount of run time without the use of multi-core computing.  Running the sample parallelization code from class caused my R session to abort.
+
+
+#### Ridge Regression
+
+The following code creates the ridge regression model and plots the coefficients as a function of log-$\lambda$:
+
+```{r}
+ridge.model <- glmnet(x,
+                      y,
+                      alpha = 0,      #specifies ridge regression
+                      lambda = grid)
+plot(ridge.model,
+     xvar = "lambda",
+     main = "Ridge")
+```
+
+We will revisit the models created in part a for evaluation using the validation set approach.  Note that the above code chunk did not take a significant amount of run time without the use of multi-core computing.  Running the sample parallelization code from class caused my R session to abort.
+
+#### Elastic Net
+
+The following code creates the elastic net model and plots the coefficients as a function of log-$\lambda$:
+
+```{r}
+elastic.model <- glmnet(x,
+                      y,
+                      alpha = 0.5,      #specifies elastic net
+                      lambda = grid)
+plot(elastic.model,
+     xvar = "lambda",
+     main = "Elastic Net")
+```
+
+We will revisit the models created in part a for evaluation using the validation set approach.  Note that the above code chunk did not take a significant amount of run time without the use of multi-core computing.  Running the sample parallelization code from class caused my R session to abort.
+
+#### Principle Components Regression
+
+```{r}
+set.seed(1237)
+pcr.model <- pcr(crim ~ .,
+                 data = boston,
+                 scale = TRUE,       #standardizes predictors
+                 validataion = "CV"  #10-fold cross validation
+                 )
+summary(pcr.model)
+validationplot(pcr.model,
+               val.type = "MSEP")
+```
+
+From this plot of cross-validated MSE vs number of components, we can see that one principle component does fairly well, and there is little reduction in MESP with 4 or more components.
+
+To get some idea of how these components are calculated we can look at the output of the prcomp function:
+
+```{r}
+pr.components <- prcomp(boston[c(2,3,4,5,6,7,8,9,10,11,12,13,14)])
+pr.components$rotation
+```
+
+We can see that the first two components are mainly composed of the tax and race variables; whereas the third and fourth are mainly composed of zoning and age variables.
+
+### b
+
+Propose a model (or set of models) that seem to perform well on this data set, and justify your answer. Make sure that you are evaluating model performance using validation set error, cross-validation, or some other reasonable alternative, as opposed to using training error.
+
+We will evaluate the models from part a using the validation set approach.  We can specify the testing and training sets with the sample() function, using the seed 1237, for reproducibility:
+
+```{r}
+set.seed(1237)
+train <- sample(c(TRUE, FALSE),
+                size = nrow(boston),
+                replace = TRUE,
+                prob = c(0.5, 0.5))
+test <- (!train)
+sum(test)
+sum(train)
+boston.train <- boston[train,]
+boston.test <- boston[test,]
+```
+
+#### Best Subset Selections
+
+We can now employ the subset selection procedures on the training data:
+
+```{r}
+#Exhaustive Search
+boston.train.ex <- regsubsets(crim ~ .,
+                            data = boston.train,
+                            method = "exhaustive",
+                            nvmax = 13  #specifies max model size
+                            )
+boston.train.ex.sum <- summary(boston.train.ex)
+boston.train.ex.sum
+tidy(boston.train.ex)
+
+#Forward
+boston.train.fwd <- regsubsets(crim ~ .,
+                            data = boston.train,
+                            method = "forward",
+                            nvmax = 13  #specifies max model size
+                            )
+boston.train.fwd.sum <- summary(boston.train.fwd)
+boston.train.fwd.sum
+tidy(boston.train.fwd)
+
+#Backward
+boston.train.bwd <- regsubsets(crim ~ .,
+                            data = boston.train,
+                            method = "backward",
+                            nvmax = 13  #specifies max model size
+                            )
+boston.train.bwd.sum <- summary(boston.train.bwd)
+boston.train.bwd.sum
+tidy(boston.train.bwd)
+```
+
+Create the model matrix for the testing dataset:
+
+```{r}
+test.matrix <- model.matrix(crim ~ ., data = boston.test)
+```
+
+Computing test MSE for each exhaustive search model:
+
+```{r}
+val.errors <- rep(NA, 13)     #13 = dim(names(boston))-1
+for (i in 1:13) {             #13 = dim(names(boston))-1
+  coefi <- coef(boston.train.ex, id = i)
+  pred <- test.matrix[, names(coefi)] %*% coefi
+  val.errors[i] <- mean((boston.test$crim - pred)^2)
+}
+val.errors
+which.min(val.errors)
+```
+
+We find that the 12-parameter exhaustive model has minimum MSE of 53.94749.
+
+Computing test MSE for each forward search model:
+
+```{r}
+val.errors <- rep(NA, 13)     #13 = dim(names(boston))-1
+for (i in 1:13) {             #13 = dim(names(boston))-1
+  coefi <- coef(boston.train.fwd, id = i)
+  pred <- test.matrix[, names(coefi)] %*% coefi
+  val.errors[i] <- mean((boston.test$crim - pred)^2)
+}
+val.errors
+which.min(val.errors)
+```
+
+We find that the 12-parameter forward search model has minimum MSE of 53.94749.
+
+Computing test MSE for each backward search model:
+
+```{r}
+val.errors <- rep(NA, 13)     #13 = dim(names(boston))-1
+for (i in 1:13) {             #13 = dim(names(boston))-1
+  coefi <- coef(boston.train.bwd, id = i)
+  pred <- test.matrix[, names(coefi)] %*% coefi
+  val.errors[i] <- mean((boston.test$crim - pred)^2)
+}
+val.errors
+which.min(val.errors)
+```
+
+We find that the 12-parameter backward search model has minimum MSE of 53.94749.  Here are the parameters of the 12-parameter model on the full dataset:
+
+```{r}
+coef(regfit.ex, 12)
+```
+
+#### Shrinkage Methods
+
+We can now apply the testing and training set approach to the shrinkage methods.  This code specifies model matrices as x values, and crime rate vector as y values for the shrinkage methods:
+
+```{r}
+x.train <- model.matrix(crim ~ .,
+                  data = boston.train)
+y.train <- boston.train$crim
+x.test <- model.matrix(crim ~ .,
+                  data = boston.test)
+y.test <- boston.test$crim
+```
+
+As in the example in the text, we will choose a range of $\lambda$ values from $10^{-2}$ to $10^{10}$, and fit models for this range of parameters:
+
+```{r}
+grid <- 10^seq(10, -2, length = 100)  #specifies 100 lambda values
+```
+
+The following code creates the lasso model and plots the coefficients as a function of log-$\lambda$:
+
+```{r}
+lasso.train <- glmnet(x.train,
+                      y.train,
+                      alpha = 1,      #specifies lasso
+                      lambda = grid)
+plot(lasso.train,
+     xvar = "lambda",
+     main = "Lasso")
+```
+
+For an arbitrarily chosen $\lambda$ value (we will use 4, as in the text) we can compute the testing MSE:
+
+```{r}
+lasso.pred <- predict(lasso.train,
+                      s = 4,
+                      newx = x.test)
+mean((lasso.pred - y.test)^2)
+```
+
+We obtain an MSE of 78.37274; not great compared to the subset selection methods.
+
+The following code creates the ridge model and plots the coefficients as a function of log-$\lambda$:
+
+```{r}
+ridge.train <- glmnet(x.train,
+                      y.train,
+                      alpha = 0,      #specifies ridge
+                      lambda = grid)
+plot(ridge.train,
+     xvar = "lambda",
+     main = "Ridge")
+```
+
+For an arbitrarily chosen $\lambda$ value (we will use 4, as in the text) we can compute the testing MSE:
+
+```{r}
+ridge.pred <- predict(ridge.train,
+                      s = 4,
+                      newx = x.test)
+mean((ridge.pred - y.test)^2)
+```
+
+We obtain an MSE of 56.77245; not bad.
+
+The following code creates the elastic net model and plots the coefficients as a function of log-$\lambda$:
+
+```{r}
+net.train <- glmnet(x.train,
+                      y.train,
+                      alpha = 0.5,      #specifies elastic net
+                      lambda = grid)
+plot(net.train,
+     xvar = "lambda",
+     main = "Elastic Net")
+```
+
+For an arbitrarily chosen $\lambda$ value (we will use 4, as in the text) we can compute the testing MSE:
+
+```{r}
+net.pred <- predict(net.train,
+                      s = 4,
+                      newx = x.test)
+mean((net.pred - y.test)^2)
+```
+
+We obtain an MSE of 65.26999; not great compared to the subset selection methods.
+
+Coefficients of the full dataset ridge regression model with lambda = 4:
+
+```{r}
+coef(ridge.model, s = 4)
+```
+
+#### Conclusion
+
+The Subset selection models have the least testing MSE, and thus have the best performance, however the ridge regression model is close.  The conventional subset selection models, arguably should be chosen.
+
+### c
+
+Does your chosen model involve all of the features in the data set? Why or why not?
+
+The selected model does not have all of the features of the dataset; one of the variables was dropped from the model in the selection procedure (number of rooms); if we had chosen the ridge regression model, then all of the parameters whould necessarily have been in the model.
+
+# Session Info
+
+```{r}
+sessionInfo()
+```
+
+# References
+
+1. Breiman L. Statistical Modeling: The Two Cultures. Statistical Science. Published online 2001:33.
+2. James G, Witten D, Hastie T, Tibshirani R. An Introduction to Statistical Learning: With Applications in R. 1st ed. 2013, Corr. 7th printing 2017 edition. Springer; 2013.

@@ -3,6 +3,9 @@ title: "Homework 7 - BSTA 522"
 author: "Matthew Hoctor"
 date: "2/15/2022"
 output:
+  pdf_document:
+    toc: yes
+    toc_depth: 3
   html_document:
     number_sections: no
     theme: lumen
@@ -10,9 +13,6 @@ output:
     toc_float:
       collapsed: yes
       smooth_scroll: no
-  pdf_document:
-    toc: yes
-    toc_depth: 3
 ---
 
 ```{r setup, include=FALSE}
@@ -316,17 +316,8 @@ xfit1 <- xgboost(param=param,
                  dtrain, 
                  nrounds=3) #compare with nround =2, num_parallel_tree seems to be 3 (?)
 print(xfit1)
-xgb.plot.tree(model = xfit1)
-xgb.plot.multi.trees(model = xfit1)
-#xgb.dump(xfit1, with_stats = T)
-pred = predict(xfit1,dtrain)
-pred = matrix(pred,ncol=3,byrow=T)
-pclass = apply(pred,1,which.max)
-# table(oj2.train$Purchase,pclass)
-
-# confusionMatrix(unique(oj2.train$Purchase)[pclass],oj2.train$Purchase)
-
-mat = xgb.importance(feature_names = colnames(oj[,-5]),model = xfit1)
+# 
+# mat = xgb.importance(feature_names = colnames(oj[,-5]),model = xfit1)
 xgb.plot.importance(importance_matrix = mat)
 ```
 
