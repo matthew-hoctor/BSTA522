@@ -3,9 +3,6 @@ title: "Homework 8 - BSTA 522"
 author: "Matthew Hoctor"
 date: "2/22/2022"
 output:
-  pdf_document:
-    toc: yes
-    toc_depth: 3
   html_document:
     number_sections: no
     theme: lumen
@@ -13,14 +10,19 @@ output:
     toc_float:
       collapsed: yes
       smooth_scroll: no
+  pdf_document:
+    toc: yes
+    toc_depth: 3
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-# library(dplyr)
+library(dplyr)
 # library(readxl)
-# library(tidyverse)
+library(tidyverse)
 library(ggplot2)
+library(gridExtra)    # grid.arrange for multiple ggplots
+library(reshape2)     # melt function for simple longform datasets
 # library(CarletonStats)
 # library(pwr)
 # library(BSDA)
@@ -28,7 +30,6 @@ library(ggplot2)
 # library(car)
 # library(dvmisc)
 # library(emmeans)
-# library(gridExtra)
 # library(DescTools)
 # library(DiagrammeR)   #for plotting trees
 # library(nlme)
@@ -38,7 +39,7 @@ library(ggplot2)
 library(ISLR2)
 # library(psych)
 # library(MASS)
-# library(caret)      #for confusionMatrix function
+library(caret)      #for confusionMatrix function
 # library(rje)
 # library(class)      #for knn function
 library(e1071)      #for naiveBayes function & SVM svm() funcion
@@ -53,19 +54,350 @@ library(e1071)      #for naiveBayes function & SVM svm() funcion
 # library(splines)      #for bs() function for basis function of regression splines
 # library(quantreg)     #for quantreg() for quantile regression
 # library(tree)           #older package for tree regression
-# library(rpart)          #more maintained package for tree regression
+library(rpart)          #more maintained package for tree regression
 # library(rattle)         #for visually appealing tree plotting
-# library(randomForest)   #for random forest technique
+library(randomForest)   #for random forest technique
 # library(party)          #?cforest function for plotting random forests?
 # library(xgboost)
+library(gbm)            #more gradient boosting functions
 library(LiblineaR)
-library(svm)
+# library(svmpath)
+library(msvmpath)
 ```
 
-# Part B: Question 9.N
+# Part B:
+
+Read 8d (report up to 5 bullet points, if you read this paper before, read 8d7 and 8d8 under the 8d CommentsRejoinder folder.)
+
+ * "Twentieth century" statistical methods can be contrasted to "twentyfirst century" methods in several important ways; while both allow for prediction of new observations, the former allows for attribution of significance of predictors, whereas the latter does not; the former tends to operate on small to medium datasets, whereas the latter is designed for very large datasets; and lastly these methods differ in assumptions, philosophy, and goals.
+ * Traditional 'twentieth century' methods can be thought of as being 'surface plus noise' models, in which regression coefficients describe a regression surface, and the error from that surface is thought of as noise; this is in contrast to the 'pure prediction' methods of the twentyfirst century, which don't share a common  model conceptualization (such as a regression surface), but provide different methods for prediction.  Tree methods, forest methods, neural networks are briefly described as examples of these methods.
+ * The training-set/testing-set paradigm, in which a portion of the dataset is preserved (in the testing set) for estimation of the model's ability to predict future observations, is described as an important aspect of the twentyfirst century approach.  Concept drift, in which the phenomenon or dynamic being measured drifts slowly over time, is described as being a downside to this approach.  The famous example given is that of the google flu predictions, which fell prey to this phenomenon because of fundamental differences in the dynamics of flu spread in different yearly flu seasons.
+ * The 'smooth-world paradigm' is described as another main difference between sets of methods.  Earlier methods have smooth transitions between predictions, as in Newtonian physics, but latter methods have multiple discontinuities.  Similarly earlier methods are contrasted to twentyfirst methods in that the former is more appropriate for long-form data, wheras the latter is more appropriate for 'wide data'.
+ * The article is summarized in table 5 in which six qualities are contrasted and tabulated.
+
+# Part C:
+
+Note that msvmpath can be installed from the wk08\MSVMPATH folder.
+You may need to install svmpath from CRAN online, first.
+Use the tar.gz file.  (packages -> install from a local file).
+Do not de-compress the file and use the file as it is to install.
+
+ * Import train.csv and test.csv in the wk08 folder and summarize them. (You can use read.csv('filename') to import) and produce summary outputs and a scatter plot of x1 & x2 with y as color and/or point type.
+   * Col 1: y (1, 2, 3 – 3 classes).
+   * Col 2~3: two predictors
+   * After import, you may need to set col 1 as a factor.
+ * Fit a classification tree (rpart using xerror to the train) and make predictions for the test.
+ * Fit a random forest to the train data and make predictions for the test. (choose an appropriate ntree).
+ * Fit a boosted tree to the train and make predictions for the test. (in gbm, use cv.folds=5 and make predictions with best.iter.)
+ * Fit svm with radial kernel (default) to the train and make predictions for test. (try a few cost values).
+ * Fit msvmpath with radial kernel to the train and make predictions for test. (kernel.function = radial.kernel)
+Report confusion matrices from the fitted models and discuss the results.
+
+## Data Import & Preliminary Analysis
+
+```{r}
+#Read the .csv files
+test <- read.csv("test.csv")
+train <- read.csv("train.csv")
+
+#Convert y-variable to a factor:
+test$y <- as.factor(test$y)
+train$y <- as.factor(train$y)
+
+#Longform datasets:
+test_long <- melt(test, value.name = "value") 
+train_long <- melt(train, value.name = "value")
+
+#Geta little peak at the data:
+head(test)
+head(train)
+```
+
+```{r}
+p1 <- test %>%
+  ggplot(aes(x1, x2, color=y)) +
+  geom_point(alpha=0.5, size=2) +
+  labs(y="X2", x="X1", subtitle="Scatter plot of testing data")
+
+p2 <- train %>%
+  ggplot(aes(x1, x2, color=y)) +
+  geom_point(alpha=0.5, size=1) +
+  labs(y="X2", x="X1", subtitle="Scatter plot of training data")
+
+p3 <- test_long %>%
+  ggplot(aes(x = variable, y = value, color = y)) +
+  geom_boxplot() +
+  labs(subtitle = "Boxplot of testing data")
+
+p4 <- train_long %>%
+  ggplot(aes(x = variable, y = value, color = y)) +
+  geom_boxplot() +
+  labs(subtitle = "Boxplot of training data")
+
+grid.arrange(p1, p2, p3, p4, ncol = 2)
+```
+
+As we can see from the plots above, pairs of x-values tend to cluster based on y-value, and testing and training data have similar mean values for the same y-value.
+
+## Classification Tree
+
+```{r}
+#Train the model
+train.rpart0 <- rpart(y ~ ., data = train)
+
+#display the tree:
+train.rpart0
+
+#Plot the tree:
+plot(train.rpart0, uniform=TRUE, main="Regression Tree for Y ")
+text(train.rpart0, use.n=TRUE, all=TRUE, cex=.8)
+```
+
+We can now see how well the regression tree model predicts the training data:
+
+```{r}
+pred.test.rpart0 <- predict(train.rpart0,
+                          newdata = test,
+                          type = "class")
+confusionMatrix(pred.test.rpart0, test$y)
+```
+
+The testing set error rate is $1-0.86=0.14$.  It is also interesting to note that no incorrect predictions are between y=1 and y=3; i.e. if the true y value is 3, then only y=2 or y=3 are predicted, and similarly if the true y-value is 1, then only y=2 or y=3 are predicted.
+
+## Random Forest
+
+```{r}
+#set seed for reproducibility:
+set.seed(1237)
+# Create Random forest
+train.randomForest0 <- randomForest(y ~ ., 
+                                    data = train, 
+                                    ntree = 100, 
+                                    importance = TRUE)
+print(train.randomForest0 )       #view results 
+plot(train.randomForest0 )        #black overall OOB error and each line for each class' error (ie 1-this class recall)
+importance(train.randomForest0 )  #importance of each predictor 
+varImpPlot(train.randomForest0 )
+```
+
+From the plot of overall OOB training error we can see that n=22 trees is adequate:
+
+```{r}
+#set seed for reproducibility:
+set.seed(1237)
+# Create Random forest
+train.randomForest1 <- randomForest(y ~ ., 
+                                    data = train, 
+                                    ntree = 22, 
+                                    importance = TRUE)
+plot(train.randomForest1)
+```
+
+We can now see how well this model predicts the testing data:
+
+```{r}
+pred.test.randomForest1  <- predict(train.randomForest1,
+                          newdata = test,
+                          type = "class")
+confusionMatrix(pred.test.randomForest1, test$y)
+```
+
+The testing set error rate is $1-0.82=0.18$.  It is also interesting to note that, again, no incorrect predictions are between y=1 and y=3.
+
+## Gradient Boosting
+
+```{r}
+#set seed for reproducibility:
+set.seed(1237)
+#create the bradient boosted model:
+train.gbm0 <- gbm(y ~ .,
+                  data = train,
+                  cv.folds = 5)
+#display the results:
+summary(train.gbm0)
+
+train.gbm0.class <- apply(train.gbm0$fit,1,which.max)
+table(train.gbm0.class, train$y)
+```
+
+If we assume that 'best.iter' refers to the output of the GBM performance function, as in the sample code, we will check the performance with cross-validation:
+
+```{r}
+best.iter <- gbm.perf(train.gbm0, method = "cv")
+print(best.iter)
+```
+
+We can see that the best number of iterations is 61; we can now use this to make predictions from the test set:
+
+```{r}
+pred.test.gbm0 <- predict(train.gbm0,
+                          newdata = test,
+                          n.trees = 61)
+
+#NB type = 'response' is not implemnted for predict.gbm
+#So we need to convert to responses as below:
+responses.gbm0 <- as.factor(apply(pred.test.gbm0,1,which.max))
+
+#Here's the confsion matrix:
+confusionMatrix(responses.gbm0, test$y)
+```
+
+## Support Vector Machines
+
+Creating support vector machines with differing costs:
+
+```{r}
+train.svm0 <- svm(y ~ .,
+                  data = train,
+                  kernel = "radial",  #this is the default value when unspecified
+                  cost = 1)           #cost = 1 is the default value when no cost is specified
+print(train.svm0)
+summary(train.svm0)
+
+train.svm5 <- svm(y ~ .,
+                  data = train,
+                  cost = 5)     
+print(train.svm5)
+summary(train.svm5)
+
+train.svm10 <- svm(y ~ .,
+                  data = train,
+                  cost = 10)     
+print(train.svm10)
+summary(train.svm10)
+
+train.svm50 <- svm(y ~ .,
+                  data = train,
+                  cost = 50)     
+print(train.svm50)
+summary(train.svm50)
+
+train.svm100 <- svm(y ~ .,
+                  data = train,
+                  cost = 100)     
+print(train.svm100)
+summary(train.svm100)
+
+train.svm1000 <- svm(y ~ .,
+                  data = train,
+                  cost = 1000)     
+print(train.svm1000)
+summary(train.svm1000)
+
+```
 
 
-    
+We can now plot the various results of these models:
+
+```{r}
+plot(train.svm0, 
+     main = "SVM classification plot for cost 1",
+     data = train)
+plot(train.svm5, 
+     main = "SVM classification plot for cost 5",
+     data = train)
+plot(train.svm10, 
+     main = "SVM classification plot for cost 10",
+     data = train)
+plot(train.svm50, 
+     main = "SVM classification plot for cost 50",
+     data = train)
+plot(train.svm100, 
+     main = "SVM classification plot for cost 100",
+     data = train)
+plot(train.svm1000, 
+     main = "SVM classification plot for cost 1000",
+     data = train)
+```
+
+We can now make predictions of the test dataset:
+
+```{r}
+pred.test.svm0 <- predict(train.svm0,
+                          newdata = test)
+pred.test.svm5 <- predict(train.svm5,
+                          newdata = test)
+pred.test.svm10 <- predict(train.svm10,
+                          newdata = test)
+pred.test.svm50 <- predict(train.svm50,
+                          newdata = test)
+pred.test.svm100 <- predict(train.svm100,
+                          newdata = test)
+pred.test.svm1000 <- predict(train.svm1000,
+                          newdata = test)
+
+#Here's the confsion matrix:
+confusionMatrix(pred.test.svm0, test$y)
+confusionMatrix(pred.test.svm5, test$y)
+confusionMatrix(pred.test.svm10, test$y)
+confusionMatrix(pred.test.svm50, test$y)
+confusionMatrix(pred.test.svm100, test$y)
+confusionMatrix(pred.test.svm1000, test$y)
+```
+
+Interestingly, we can see that cost = 1 produces the best accuracy.
+
+## Multicategory SVM Pathing
+
+```{r}
+# For reproducibility
+set.seed(1237)
+
+#We need to create a new matrix for the x-variable in the msvmpath function:
+x.train = train[,-1]
+y.train = train[,1]
+x.train = as.matrix(x.train)
+y.train = as.numeric(as.factor(y.train))
+
+x.test = test[,-1]
+y.test = test[,1]
+x.test = as.matrix(x.test)
+y.test = as.numeric(as.factor(y.test))
+
+train.msvmpath0 <- msvmpath(x = x.train,
+                            y = y.train,
+                            fract = 0.5,             #sets fraction used tor solution path to half
+                            tune.rest = TRUE,        #the other half are used for tuning lambda value
+                            kernel.function = radial.kernel)
+
+#Just junk code below:
+
+# pred.test.msvmpath0 <- predict.msvmpath(train.msvmpath0,
+#                                         x.test,
+#                                         train.msvmpath0$opt.lambda,
+#                                         type = "class")
+# 
+# summary.msvmpath(train.msvmpath0)
+
+
+# irispath=msvmpath(x.1, y.1, fract=0.5,tune.rest=TRUE,kernel.function=radial.kernel)
+# irispath.pred = predict.msvmpath(irispath,x.2,irispath$opt.lambda,type="class")
+# summary.msvmpath(irispath)
+# #print(irispath)
+# test.error.rate=mean(irispath.pred!=y.2)
+# test.error.rate
+```
+Error encountered:
+no non-missing arguments to max; returning -InfError in alpha[, , i] : subscript out of bounds
+
+```{r}
+pred.test.msvmpath0 <- predict.msvmpath(train.msvmpath0,
+                                        newx = x.test,
+                                        lambda = train.msvmpath0$opt.lambda,
+                                        type = "class")
+
+summary.msvmpath(train.msvmpath0)
+
+#Here's the confusion matrix:
+confusionMatrix(as.factor(pred.test.msvmpath0), test$y)
+```
+
+Interestingly, the accuracy is very poor here.  Perhaps something went wrong?
+
+## Conclusion
+
+Unsurprisingly, the gradient boosting algorithm had the best overall accuracy of 87.33%.
+
 # Session Info
 
 ```{r}
@@ -74,4 +406,5 @@ sessionInfo()
 
 # References
 
-1. James G, Witten D, Hastie T, Tibshirani R. An Introduction to Statistical Learning: With Applications in R. 1st ed. 2013, Corr. 7th printing 2017 edition. Springer; 2013.
+1. Efron B. Prediction, Estimation, and Attribution. Journal of the American Statistical Association. 2020;115(530):636-655. doi:10.1080/01621459.2020.1762613
+2. James G, Witten D, Hastie T, Tibshirani R. An Introduction to Statistical Learning: With Applications in R. 1st ed. 2013, Corr. 7th printing 2017 edition. Springer; 2013.
