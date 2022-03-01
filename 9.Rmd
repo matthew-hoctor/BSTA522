@@ -1,11 +1,8 @@
 ---
-title: "Homework 7 - BSTA 522"
+title: "Homework 9 - BSTA 522"
 author: "Matthew Hoctor"
-date: "2/15/2022"
+date: "3/1/2022"
 output:
-  pdf_document:
-    toc: yes
-    toc_depth: 3
   html_document:
     number_sections: no
     theme: lumen
@@ -13,6 +10,9 @@ output:
     toc_float:
       collapsed: yes
       smooth_scroll: no
+  pdf_document:
+    toc: yes
+    toc_depth: 3
 ---
 
 ```{r setup, include=FALSE}
@@ -20,7 +20,9 @@ knitr::opts_chunk$set(echo = TRUE)
 # library(dplyr)
 # library(readxl)
 # library(tidyverse)
-library(ggplot2)
+# library(ggplot2)
+# library(gridExtra)      #grid.arrange for multiple ggplots
+# library(reshape2)       #melt function for simple longform datasets
 # library(CarletonStats)
 # library(pwr)
 # library(BSDA)
@@ -28,9 +30,8 @@ library(ggplot2)
 # library(car)
 # library(dvmisc)
 # library(emmeans)
-# library(gridExtra)
 # library(DescTools)
-# library(DiagrammeR)
+# library(DiagrammeR)     #for plotting trees
 # library(nlme)
 # library(doBy)
 # library(geepack)
@@ -38,33 +39,45 @@ library(ggplot2)
 library(ISLR2)
 # library(psych)
 # library(MASS)
-# library(caret)      #for confusionMatrix function
+# library(caret)          #for confusionMatrix function
 # library(rje)
-# library(class)      #for knn function
-# library(e1071)      #for naiveBayes function
-# library(boot)       #for boot function
-# library(covTest)      #for covTest function
-# library(leaps)        #for regsubsets function for best subset selection
+# library(class)          #for knn function
+# library(e1071)          #for naiveBayes function & SVM svm() funcion
+# library(boot)           #for boot function
+# library(covTest)        #for covTest function
+# library(leaps)          #for regsubsets function for best subset selection
 # library(broom)
-# library(glmnet)       #for glmnet() for shrinkage methods
-# library(doParallel)   #for parallel computing in glmnet(); does not work
-# library(pls)          #for pcr function
-# library(qpcR)         #for RSS function
-# library(splines)      #for bs() function for basis function of regression splines
-# library(quantreg)     #for quantreg() for quantile regression
+# library(glmnet)         #for glmnet() for shrinkage methods
+# library(doParallel)     #for parallel computing in glmnet(); does not work
+# library(pls)            #for pcr function
+# library(qpcR)           #for RSS function
+# library(splines)        #for bs() function for basis function of regression splines
+# library(quantreg)       #for quantreg() for quantile regression
 # library(tree)           #older package for tree regression
 # library(rpart)          #more maintained package for tree regression
 # library(rattle)         #for visually appealing tree plotting
 # library(randomForest)   #for random forest technique
 # library(party)          #?cforest function for plotting random forests?
 # library(xgboost)
-# library(DiagrammeR)
+# library(gbm)            #more gradient boosting functions
+# library(LiblineaR)
+# library(svmpath)
+# library(msvmpath)
+library(scatterplot3d)    #for the 3d scatterplot of pca
+library(mclust)           #for cluster analysis
+library(tightclust)       #?another clustering library?
 ```
 
-# Part B: Question 9.N
+# Part B:
 
+Read 8d (report up to 5 bullet points, if you read this paper before, read 8d7 and 8d8 under the 8d CommentsRejoinder folder.)
 
-    
+ * "Twentieth century" statistical methods can be contrasted to "twentyfirst century" methods in several important ways; while both allow for prediction of new observations, the former allows for attribution of significance of predictors, whereas the latter does not; the former tends to operate on small to medium datasets, whereas the latter is designed for very large datasets; and lastly these methods differ in assumptions, philosophy, and goals.
+ * Traditional 'twentieth century' methods can be thought of as being 'surface plus noise' models, in which regression coefficients describe a regression surface, and the error from that surface is thought of as noise; this is in contrast to the 'pure prediction' methods of the twentyfirst century, which don't share a common  model conceptualization (such as a regression surface), but provide different methods for prediction.  Tree methods, forest methods, neural networks are briefly described as examples of these methods.
+ * The training-set/testing-set paradigm, in which a portion of the dataset is preserved (in the testing set) for estimation of the model's ability to predict future observations, is described as an important aspect of the twentyfirst century approach.  Concept drift, in which the phenomenon or dynamic being measured drifts slowly over time, is described as being a downside to this approach.  The famous example given is that of the google flu predictions, which fell prey to this phenomenon because of fundamental differences in the dynamics of flu spread in different yearly flu seasons.
+ * The 'smooth-world paradigm' is described as another main difference between sets of methods.  Earlier methods have smooth transitions between predictions, as in Newtonian physics, but latter methods have multiple discontinuities.  Similarly earlier methods are contrasted to twentyfirst methods in that the former is more appropriate for long-form data, wheras the latter is more appropriate for 'wide data'.
+ * The article is summarized in table 5 in which six qualities are contrasted and tabulated.
+
 # Session Info
 
 ```{r}
@@ -73,4 +86,5 @@ sessionInfo()
 
 # References
 
-1. James G, Witten D, Hastie T, Tibshirani R. An Introduction to Statistical Learning: With Applications in R. 1st ed. 2013, Corr. 7th printing 2017 edition. Springer; 2013.
+
+2. James G, Witten D, Hastie T, Tibshirani R. An Introduction to Statistical Learning: With Applications in R. 1st ed. 2013, Corr. 7th printing 2017 edition. Springer; 2013.
